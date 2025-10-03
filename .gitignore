@@ -4,6 +4,11 @@
 .pnp.js
 .yarn/install-state.gz
 
+# IA Providers
+.env
+.env.production
+.env.local
+
 # Testing
 /coverage
 
