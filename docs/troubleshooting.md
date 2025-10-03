@@ -1,6 +1,7 @@
 # 🆘 Troubleshooting - Soluções para Problemas Comuns
 
 ## 🎯 **Como Usar Este Guia**
+
 1. 🔍 **Identifique o problema** na seção correspondente
 2. 🛠️ **Siga os passos** na ordem apresentada
 3. ✅ **Teste** se o problema foi resolvido
@@ -13,11 +14,13 @@
 ### 🚨 **1. "Sistema não inicia / Erro de porta"**
 
 #### **Sintomas:**
+
 ```
 Error: listen EADDRINUSE: address already in use :::3001
 ```
 
 #### **Soluções:**
+
 ```bash
 # Opção 1: Usar porta diferente
 npm run dev -- --port 3002
@@ -32,6 +35,7 @@ lsof -ti:3001 | xargs kill -9
 ```
 
 #### **Prevenção:**
+
 ```bash
 # Adicionar ao package.json
 "scripts": {
@@ -45,11 +49,13 @@ lsof -ti:3001 | xargs kill -9
 ### 🔐 **2. "Login não funciona / Erro de autenticação"**
 
 #### **Sintomas:**
+
 - Botão de login não responde
 - Erro "Invalid credentials"
 - Redirecionamento infinito
 
 #### **Diagnóstico:**
+
 ```bash
 # Verificar variáveis de ambiente
 node -e "console.log('NEXTAUTH_SECRET:', !!process.env.NEXTAUTH_SECRET)"
@@ -59,12 +65,14 @@ node -e "console.log('NEXTAUTH_URL:', process.env.NEXTAUTH_URL)"
 #### **Soluções:**
 
 ##### **Problema: NEXTAUTH_SECRET não configurado**
+
 ```bash
 # .env.local
 NEXTAUTH_SECRET="sua-string-secreta-muito-longa-aqui-32-caracteres-minimo"
 ```
 
 ##### **Problema: NEXTAUTH_URL incorreto**
+
 ```bash
 # .env.local
 NEXTAUTH_URL="http://localhost:3001"  # Desenvolvimento
@@ -72,6 +80,7 @@ NEXTAUTH_URL="https://seudominio.com"  # Produção
 ```
 
 ##### **Problema: Banco de dados não conectado**
+
 ```bash
 # Verificar conexão
 npx prisma db push
@@ -79,6 +88,7 @@ npx prisma studio  # Abrir interface do banco
 ```
 
 #### **Teste:**
+
 ```bash
 # Testar login direto
 curl -X POST http://localhost:3001/api/auth/signin \
@@ -91,11 +101,13 @@ curl -X POST http://localhost:3001/api/auth/signin \
 ### 🤖 **3. "Agente não executa / IA não responde"**
 
 #### **Sintomas:**
+
 - Execução trava em "Executando..."
 - Erro "AI Provider not configured"
 - Resposta sempre simulada
 
 #### **Diagnóstico:**
+
 ```javascript
 // Testar no console do navegador
 fetch('/api/llm/call', {
@@ -113,6 +125,7 @@ fetch('/api/llm/call', {
 #### **Soluções:**
 
 ##### **Problema: API Keys não configuradas**
+
 ```bash
 # .env.local - Configure pelo menos uma
 OPENAI_API_KEY="sk-..."
@@ -121,11 +134,13 @@ GOOGLE_AI_API_KEY="AIza..."
 ```
 
 ##### **Problema: Cota da API esgotada**
+
 - Verificar dashboard do provedor (OpenAI, Anthropic, etc.)
 - Verificar limites de billing
 - Trocar para outro provedor temporariamente
 
 ##### **Problema: Nó mal configurado**
+
 ```javascript
 // Verificar se nó AI tem:
 {
@@ -137,7 +152,9 @@ GOOGLE_AI_API_KEY="AIza..."
 ```
 
 #### **Fallback Manual:**
+
 Se IA não funcionar, o sistema usa respostas simuladas. Para forçar IA real:
+
 ```typescript
 // No runtime-engine.ts, comentar linha de fallback:
 // return this.generateRealisticResponse(prompt, provider, model)
@@ -148,11 +165,13 @@ Se IA não funcionar, o sistema usa respostas simuladas. Para forçar IA real:
 ### 📧 **4. "Email não envia"**
 
 #### **Sintomas:**
+
 - Email fica "enviando" para sempre
 - Erro "SMTP connection failed"
 - Email vai para spam
 
 #### **Diagnóstico:**
+
 ```bash
 # Testar configuração SMTP
 node -e "
@@ -171,6 +190,7 @@ transporter.verify((error, success) => {
 #### **Soluções:**
 
 ##### **Gmail/Google Workspace:**
+
 ```bash
 # .env.local
 SMTP_HOST=smtp.gmail.com
@@ -182,6 +202,7 @@ SMTP_PASSWORD=sua-senha-de-app  # NÃO a senha normal!
 **⚠️ Importante:** Use "Senha de App", não a senha normal do Gmail!
 
 ##### **Outlook/Hotmail:**
+
 ```bash
 SMTP_HOST=smtp-mail.outlook.com
 SMTP_PORT=587
@@ -190,11 +211,13 @@ SMTP_PASSWORD=sua-senha
 ```
 
 ##### **SendGrid (Recomendado para produção):**
+
 ```bash
 SENDGRID_API_KEY=SG.xxxxx
 ```
 
 #### **Teste Manual:**
+
 ```javascript
 // test-email.js
 const { EmailConnector } = require('./src/lib/connectors/email')
@@ -219,6 +242,7 @@ connector.execute({
 ### 📄 **5. "Upload de arquivo falha"**
 
 #### **Sintomas:**
+
 - Erro "File too large"
 - Upload trava em 99%
 - Arquivo não é processado
@@ -226,6 +250,7 @@ connector.execute({
 #### **Soluções:**
 
 ##### **Aumentar limite de arquivo:**
+
 ```javascript
 // next.config.js
 module.exports = {
@@ -238,6 +263,7 @@ module.exports = {
 ```
 
 ##### **Verificar tipos permitidos:**
+
 ```typescript
 // src/lib/processors/file-processor.ts
 const allowedTypes = [
@@ -250,6 +276,7 @@ const allowedTypes = [
 ```
 
 ##### **Limpar uploads antigos:**
+
 ```bash
 # Limpar pasta uploads
 rm -rf uploads/*
@@ -261,6 +288,7 @@ mkdir -p uploads
 ### 🎨 **6. "Interface quebrada / CSS não carrega"**
 
 #### **Sintomas:**
+
 - Página sem estilo
 - Componentes sobrepostos
 - Botões não funcionam
@@ -268,18 +296,21 @@ mkdir -p uploads
 #### **Soluções:**
 
 ##### **Limpar cache do Next.js:**
+
 ```bash
 rm -rf .next
 npm run dev
 ```
 
 ##### **Reinstalar dependências:**
+
 ```bash
 rm -rf node_modules package-lock.json
 npm install
 ```
 
 ##### **Verificar Tailwind:**
+
 ```bash
 # Verificar se Tailwind está compilando
 npm run build
@@ -290,6 +321,7 @@ npm run build
 ## 🔧 **Ferramentas de Diagnóstico**
 
 ### **Script de Diagnóstico Completo:**
+
 ```javascript
 // scripts/diagnose.js
 const { PrismaClient } = require('@prisma/client')
@@ -352,6 +384,7 @@ diagnose()
 ```
 
 ### **Executar Diagnóstico:**
+
 ```bash
 node scripts/diagnose.js
 ```
@@ -361,12 +394,14 @@ node scripts/diagnose.js
 ## 📞 **Quando Escalar o Problema**
 
 ### **Escale SE:**
+
 - ✅ Seguiu todos os passos do troubleshooting
 - ✅ Problema persiste após 30 minutos
 - ✅ Afeta funcionalidade crítica
 - ✅ Tem logs de erro específicos
 
 ### **Informações para Incluir:**
+
 1. **Descrição do problema** (o que estava fazendo)
 2. **Mensagem de erro completa** (screenshot/copy-paste)
 3. **Ambiente** (desenvolvimento/produção)
@@ -375,6 +410,7 @@ node scripts/diagnose.js
 6. **Passos já tentados**
 
 ### **Template de Issue:**
+
 ```markdown
 ## 🚨 Problema: [Título descritivo]
 
@@ -387,7 +423,9 @@ node scripts/diagnose.js
 
 ### Erro
 ```
+
 [Mensagem de erro completa]
+
 ```
 
 ### Passos Tentados
@@ -398,7 +436,9 @@ node scripts/diagnose.js
 
 ### Logs de Diagnóstico
 ```
+
 [Resultado do script diagnose.js]
+
 ```
 ```
 
@@ -407,12 +447,14 @@ node scripts/diagnose.js
 ## 🎯 **Prevenção de Problemas**
 
 ### **Checklist Diário:**
+
 - [ ] Backup do banco funcionando
 - [ ] Logs sem erros críticos
 - [ ] APIs de IA com cota disponível
 - [ ] Sistema de email funcionando
 
 ### **Checklist Semanal:**
+
 - [ ] Atualizar dependências
 - [ ] Revisar logs de erro
 - [ ] Testar funcionalidades críticas

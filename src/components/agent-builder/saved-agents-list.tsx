@@ -39,10 +39,13 @@ import { AgentExecutionModalV2 } from './agent-execution-modal-v2'
 interface SavedAgent {
   id: string
   name: string
-  description?: string
+  description: string
+  category: string;
+  nodes: any;
+  edges: any;
   templateId: string
-  createdAt: string
-  updatedAt: string
+  createdAt: Date
+  updatedAt: Date
   executions: number
   lastExecuted?: string
   isFavorite: boolean
@@ -456,7 +459,7 @@ export function SavedAgentsList() {
               <div className="flex flex-col gap-2 text-xs text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <Calendar className="h-3 w-3" />
-                  <span>Criado {formatDate(agent.createdAt)}</span>
+                  <span>Criado {formatDate(agent.createdAt.toISOString())}</span>
                 </div>
                 
                 <div className="flex items-center gap-2">
