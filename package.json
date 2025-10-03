@@ -21,7 +21,6 @@
     "db:seed:test": "prisma db seed",
     "docker:build": "docker build -t mvp-agent-builder .",
     "docker:run": "docker run -p 3000:3000 mvp-agent-builder",
-    "prepare": "husky install"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.62.0",
