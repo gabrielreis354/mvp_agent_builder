@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { AuthGuard } from '@/components/auth/AuthGuard';
 import { Button } from '@/components/ui/button';
 import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 
-export default function JoinOrganizationPage() {
+function JoinOrganizationContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
@@ -71,5 +71,13 @@ export default function JoinOrganizationPage() {
         </div>
       </div>
     </AuthGuard>
+  );
+}
+
+export default function JoinOrganizationPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-gray-900 to-purple-900 flex items-center justify-center"><div className="text-white">Carregando...</div></div>}>
+      <JoinOrganizationContent />
+    </Suspense>
   );
 }

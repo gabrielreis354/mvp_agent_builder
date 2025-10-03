@@ -3,9 +3,9 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/auth-config';
 import { prisma } from '@/lib/database/prisma';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession({ req: request as any, ...authOptions });
     
     if (!session?.user?.id || !session.user.organizationId) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });

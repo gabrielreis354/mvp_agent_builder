@@ -5,7 +5,7 @@ import { prisma } from '@/lib/database/prisma'
 
 export async function GET(request: Request) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession({ req: request as any, ...authOptions })
     
     if (!session?.user?.id || !session.user.organizationId) {
       return NextResponse.json(

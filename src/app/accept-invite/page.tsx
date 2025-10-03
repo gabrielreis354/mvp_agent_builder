@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
@@ -14,7 +14,7 @@ interface Invitation {
   };
 }
 
-export default function AcceptInvitePage() {
+function AcceptInviteContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
   const [invitation, setInvitation] = useState<Invitation | null>(null);
@@ -107,5 +107,13 @@ export default function AcceptInvitePage() {
         {renderContent()}
       </div>
     </div>
+  );
+}
+
+export default function AcceptInvitePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-gray-900 to-purple-900 flex items-center justify-center"><div className="text-white">Carregando...</div></div>}>
+      <AcceptInviteContent />
+    </Suspense>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { signIn, getSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,7 @@ import { Loader2, Linkedin, Mail, Brain, ArrowRight, Sparkles } from 'lucide-rea
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 
-export function SignInForm() {
+function SignInFormContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -193,5 +193,13 @@ export function SignInForm() {
         </div>
       </div>
     </div>
+  );
+}
+
+export function SignInForm() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-gray-900 to-purple-900 flex items-center justify-center"><div className="text-white">Carregando...</div></div>}>
+      <SignInFormContent />
+    </Suspense>
   );
 }
