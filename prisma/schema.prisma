@@ -1,0 +1,397 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User management
+model Invitation {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  organizationId String
+  token          String    @unique @default(cuid())
+  expires        DateTime
+  createdAt      DateTime  @default(now())
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String?   // For credentials provider
+  image         String?
+  emailVerified DateTime?
+  role          UserRole  @default(USER)
+  
+  // HR-specific fields
+  jobTitle      String?
+  department    String?
+  companySize   String?
+  primaryUseCase String?
+  phone         String?
+  linkedIn      String?
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Multi-tenancy
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // Relations
+  agents     Agent[]
+  executions AgentExecution[]
+  apiKeys    UserApiKey[]
+  accounts   Account[]
+  sessions   Session[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  SUPER_ADMIN
+  VIEWER
+}
+
+// NextAuth.js models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// Agent definitions
+model Agent {
+  id          String      @id @default(cuid())
+  name        String
+  description String?
+  category    String      @default("general")
+  version     String      @default("1.0.0")
+  isPublic    Boolean     @default(false)
+  isTemplate  Boolean     @default(false)
+  tags        String[]
+  metadata    Json?
+  
+  // Agent structure
+  nodes       Json        // AgentNode[]
+  edges       Json        // AgentEdge[]
+  
+  // Validation schemas
+  inputSchema  Json?
+  outputSchema Json?
+  
+  // Ownership
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Multi-tenancy
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: NoAction) // Avoids multiple cascade paths
+  
+  // Timestamps
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  // Relations
+  executions  AgentExecution[]
+  templates   AgentTemplate[]
+
+  @@map("agents")
+}
+
+// Pre-built agent templates
+model AgentTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  category    String
+  difficulty  String   @default("beginner") // beginner, intermediate, advanced
+  tags        String[]
+  
+  // Template structure
+  nodes       Json     // AgentNode[]
+  edges       Json     // AgentEdge[]
+  
+  // Schemas
+  inputSchema  Json?
+  outputSchema Json?
+  
+  // Usage statistics
+  usageCount  Int      @default(0)
+  
+  // Source agent (if created from existing agent)
+  sourceAgentId String?
+  sourceAgent   Agent?  @relation(fields: [sourceAgentId], references: [id])
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("agent_templates")
+}
+
+// Agent execution history
+model AgentExecution {
+  id            String            @id @default(cuid())
+  executionId   String            @unique
+  
+  // Agent reference
+  agentId       String
+  agent         Agent             @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  
+  // User reference
+  userId        String
+  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Multi-tenancy
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: NoAction) // Avoids multiple cascade paths
+  
+  // Execution details
+  status        ExecutionStatus   @default(PENDING)
+  priority      Int               @default(0)
+  
+  // Input/Output
+  inputData     Json
+  outputData    Json?
+  errorMessage  String?
+  
+  // Metrics
+  executionTime Int?              // milliseconds
+  tokensUsed    Int               @default(0)
+  cost          Float             @default(0.0)
+  
+  // Queue information
+  jobId         String?
+  queuedAt      DateTime?
+  startedAt     DateTime?
+  completedAt   DateTime?
+  
+  // Metadata
+  metadata      Json?
+  logs          String[]          @default([])
+  
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@map("agent_executions")
+}
+
+enum ExecutionStatus {
+  PENDING
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+// User API keys for AI providers
+model UserApiKey {
+  id        String      @id @default(cuid())
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Multi-tenancy
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: NoAction) // Avoids multiple cascade paths
+  
+  provider  AIProvider
+  keyName   String      // User-friendly name
+  
+  // Encrypted API key
+  encryptedKey String
+  
+  // Key metadata
+  isActive     Boolean   @default(true)
+  lastUsed     DateTime?
+  usageCount   Int       @default(0)
+  
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([userId, provider, keyName])
+  @@map("user_api_keys")
+}
+
+enum AIProvider {
+  OPENAI
+  ANTHROPIC
+  GOOGLE
+}
+
+// System configuration
+model SystemConfig {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       Json
+  description String?
+  category    String   @default("general")
+  isPublic    Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("system_config")
+}
+
+// Audit log for security and compliance
+model AuditLog {
+  id          String     @id @default(cuid())
+  userId      String?
+  action      String     // CREATE, UPDATE, DELETE, EXECUTE, etc.
+  resource    String?    // agent, execution, user, etc.
+  resourceId  String?
+  
+  // Request details
+  ipAddress   String?
+  userAgent   String?
+  
+  // Change details
+  oldValues   Json?
+  newValues   Json?
+  details     Json?      // Additional event details
+  
+  // Metadata
+  metadata    Json?
+  
+  createdAt   DateTime   @default(now())
+
+  @@map("audit_logs")
+}
+
+// File uploads and processing
+model FileUpload {
+  id           String      @id @default(cuid())
+  filename     String
+  originalName String
+  mimeType     String
+  size         Int
+  path         String
+  
+  // Processing status
+  status       FileStatus  @default(UPLOADED)
+  processedAt  DateTime?
+  
+  // Metadata extracted from file
+  metadata     Json?
+  
+  // Relations
+  userId       String?
+  executionId  String?
+
+  // Multi-tenancy
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@map("file_uploads")
+}
+
+enum FileStatus {
+  UPLOADED
+  PROCESSING
+  PROCESSED
+  FAILED
+}
+
+// Analytics and usage tracking
+model UsageMetrics {
+  id          String   @id @default(cuid())
+  date        DateTime @db.Date
+  
+  // User metrics
+  activeUsers Int      @default(0)
+  newUsers    Int      @default(0)
+  
+  // Agent metrics
+  agentsCreated   Int @default(0)
+  agentsExecuted  Int @default(0)
+  templatesUsed   Int @default(0)
+  
+  // Execution metrics
+  totalExecutions    Int   @default(0)
+  successfulExecutions Int @default(0)
+  failedExecutions   Int   @default(0)
+  avgExecutionTime   Float @default(0.0)
+  
+  // AI usage metrics
+  totalTokensUsed Int   @default(0)
+  totalCost       Float @default(0.0)
+  
+  // System metrics
+  avgResponseTime Float @default(0.0)
+  errorRate       Float @default(0.0)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([date])
+  @@map("usage_metrics")
+}
+
+// Multi-tenancy model
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  users      User[]
+  agents     Agent[]
+  executions AgentExecution[]
+  apiKeys    UserApiKey[]
+  files      FileUpload[]
+  invitations  Invitation[]
+
+  @@map("organizations")
+}
