@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getEmailService } from '@/lib/email/email-service';
 
+export const dynamic = 'force-dynamic';
+
 // Helper to get MIME type and extension from format
 function getDocumentDetails(format: 'pdf' | 'docx' | 'excel' | 'html') {
   switch (format) {
@@ -36,7 +38,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'O conteúdo para gerar o documento não foi fornecido.' }, { status: 400 });
     }
 
-    const microserviceUrl = process.env.DOCUMENT_SERVICE_URL || 'http://localhost:8001/generate-report';
+    const pdfServiceUrl = process.env.NEXT_PUBLIC_PDF_SERVICE_URL || 'http://localhost:8001';
+    const microserviceUrl = `${pdfServiceUrl.startsWith('http') ? pdfServiceUrl : `https://${pdfServiceUrl}`}/generate-report`;
     console.log(`🚀 [API Generate] Forwarding request to microservice: ${microserviceUrl}`);
 
     // O microsserviço espera FormData com 'content' como string JSON
