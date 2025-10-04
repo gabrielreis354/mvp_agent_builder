@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { X, Download, Copy, CheckCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -105,7 +106,7 @@ export function ReportPreviewModal({ report, onClose }: ReportPreviewModalProps)
     }
   }
 
-  return (
+  const modalContent = (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={onClose}>
       {/* Modal */}
       <motion.div
@@ -287,4 +288,9 @@ export function ReportPreviewModal({ report, onClose }: ReportPreviewModalProps)
         </motion.div>
     </div>
   )
+
+  // Renderizar via Portal diretamente no body
+  return typeof window !== 'undefined' 
+    ? createPortal(modalContent, document.body)
+    : null
 }
