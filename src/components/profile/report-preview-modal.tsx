@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { motion, AnimatePresence } from 'framer-motion'
-import type { ReportCache } from '@/lib/services/report-service-simple'
+import type { ReportCache } from '@/lib/services/report-service-prisma'
 
 interface ReportPreviewModalProps {
   report: ReportCache
@@ -126,12 +126,15 @@ export function ReportPreviewModal({ report, onClose }: ReportPreviewModalProps)
                         <label className="text-xs text-gray-400 uppercase tracking-wider">
                           {key.replace(/_/g, ' ')}
                         </label>
-                        <p className="text-white mt-1 font-medium">
-                          {typeof value === 'object' 
-                            ? JSON.stringify(value) 
-                            : String(value)
-                          }
-                        </p>
+                        <div className="text-white mt-1">
+                          {typeof value === 'object' ? (
+                            <pre className="text-sm font-mono bg-gray-900/50 p-3 rounded overflow-x-auto">
+                              {JSON.stringify(value, null, 2)}
+                            </pre>
+                          ) : (
+                            <p className="font-medium">{String(value)}</p>
+                          )}
+                        </div>
                       </div>
                     ))
                   }

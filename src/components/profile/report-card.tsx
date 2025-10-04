@@ -7,7 +7,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ReportPreviewModal } from './report-preview-modal'
-import type { ReportCache } from '@/lib/services/report-service-simple'
+import type { ReportCache } from '@/lib/services/report-service-prisma'
 
 interface ReportCardProps {
   report: ReportCache
@@ -80,9 +80,9 @@ export function ReportCard({ report, viewMode, onDelete }: ReportCardProps) {
   return (
     <>
       <div className={`
-        bg-white/10 backdrop-blur-lg rounded-xl overflow-hidden
-        border border-gray-700 hover:border-gray-600 transition-all
-        hover:shadow-xl hover:bg-white/15
+        bg-gray-800/80 backdrop-blur-lg rounded-xl overflow-hidden
+        border border-gray-600 hover:border-blue-500/50 transition-all
+        hover:shadow-xl hover:shadow-blue-500/10 hover:bg-gray-800/90
         ${viewMode === 'list' ? 'flex items-center p-4' : ''}
       `}>
         {/* Indicador de tipo */}
@@ -114,14 +114,18 @@ export function ReportCard({ report, viewMode, onDelete }: ReportCardProps) {
 
             {/* Preview de campos */}
             {viewMode === 'grid' && mainFields.length > 0 && (
-              <div className="space-y-2 mb-3 pt-3 border-t border-gray-700">
+              <div className="space-y-2 mb-3 pt-3 border-t border-gray-600">
                 {mainFields.map(([key, value]) => (
-                  <div key={key} className="flex justify-between text-sm">
-                    <span className="text-gray-400 capitalize">
-                      {key.replace(/_/g, ' ')}:
+                  <div key={key} className="flex flex-col gap-1 text-sm">
+                    <span className="text-gray-400 font-medium text-xs uppercase tracking-wide">
+                      {key.replace(/_/g, ' ')}
                     </span>
-                    <span className="text-gray-200 text-right truncate max-w-[150px]">
-                      {String(value)}
+                    <span className="text-white font-medium">
+                      {typeof value === 'object' ? (
+                        <span className="text-blue-400 text-xs">Ver detalhes no modal</span>
+                      ) : (
+                        String(value).substring(0, 100) + (String(value).length > 100 ? '...' : '')
+                      )}
                     </span>
                   </div>
                 ))}
