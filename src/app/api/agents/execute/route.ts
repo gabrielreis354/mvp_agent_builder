@@ -93,7 +93,8 @@ async function handlePOST(request: NextRequest): Promise<NextResponse> {
           "⚠️ [API Execute] Python microservice failed, using internal fallback:",
           error
         );
-        const fallbackResponse = await fetch("/api/upload-and-process", {
+        const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3001';
+        const fallbackResponse = await fetch(`${baseUrl}/api/upload-and-process`, {
           method: "POST",
           body: fileFormData,
         });
