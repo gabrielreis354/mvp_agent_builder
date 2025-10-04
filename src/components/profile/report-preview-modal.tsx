@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { X, Download, Copy, CheckCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -17,6 +17,14 @@ interface ReportPreviewModalProps {
 export function ReportPreviewModal({ report, onClose }: ReportPreviewModalProps) {
   const [copied, setCopied] = useState(false)
   const [downloading, setDownloading] = useState(false)
+
+  // Bloquear scroll do body quando modal estiver aberto
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [])
 
   // Proteção contra dados inválidos
   if (!report || !report.result) {
@@ -106,14 +114,14 @@ export function ReportPreviewModal({ report, onClose }: ReportPreviewModalProps)
   }
 
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <AnimatePresence mode="wait">
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-hidden">
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+          className="absolute inset-0 bg-black/80 backdrop-blur-sm"
           onClick={onClose}
         />
 
@@ -122,7 +130,8 @@ export function ReportPreviewModal({ report, onClose }: ReportPreviewModalProps)
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative w-full max-w-5xl max-h-[90vh] bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden"
+          transition={{ duration: 0.2 }}
+          className="relative w-full max-w-5xl max-h-[90vh] bg-gray-900 border border-gray-700 rounded-xl shadow-2xl flex flex-col overflow-hidden"
         >
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-700 bg-gradient-to-r from-gray-900 to-gray-800">
@@ -181,7 +190,7 @@ export function ReportPreviewModal({ report, onClose }: ReportPreviewModalProps)
           </div>
 
           {/* Content */}
-          <div className="overflow-y-auto max-h-[calc(90vh-120px)] p-6">
+          <div className="flex-1 overflow-y-auto p-6">
             <Tabs defaultValue="fields" className="w-full">
               <TabsList className="bg-gray-800 mb-6">
                 <TabsTrigger value="fields">Campos Extraídos</TabsTrigger>
