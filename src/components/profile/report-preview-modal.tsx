@@ -34,11 +34,56 @@ export function ReportPreviewModal({ report, onClose }: ReportPreviewModalProps)
   }
 
   const handleCopy = () => {
-    const content = report.result.extractedText || 
-                   JSON.stringify(report.result.fields, null, 2)
+    // Formatar conteúdo de forma legível
+    let content = ''
+    
+    // Se tiver texto extraído, usar ele
+    if (report.result.extractedText) {
+      content = report.result.extractedText
+    } 
+    // Se tiver resumo executivo, usar ele
+    else if (report.result.summary) {
+      content = report.result.summary
+    }
+    // Caso contrário, formatar os campos de forma legível
+    else if (report.result.fields) {
+      content = formatFieldsAsText(report.result.fields)
+    }
+    // Último recurso: JSON formatado
+    else {
+      content = JSON.stringify(report.result, null, 2)
+    }
+    
     navigator.clipboard.writeText(content)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  const formatFieldsAsText = (fields: any): string => {
+    let text = ''
+    
+    for (const [key, value] of Object.entries(fields)) {
+      if (key.startsWith('_')) continue
+      
+      const label = key.replace(/_/g, ' ').toUpperCase()
+      
+      if (typeof value === 'object' && value !== null) {
+        text += `\n${label}:\n`
+        if (Array.isArray(value)) {
+          value.forEach((item, index) => {
+            text += `  ${index + 1}. ${typeof item === 'object' ? JSON.stringify(item) : item}\n`
+          })
+        } else {
+          for (const [subKey, subValue] of Object.entries(value)) {
+            text += `  ${subKey.replace(/_/g, ' ')}: ${subValue}\n`
+          }
+        }
+      } else {
+        text += `${label}: ${value}\n`
+      }
+    }
+    
+    return text
   }
 
   const handleDownload = async () => {
@@ -106,8 +151,18 @@ export function ReportPreviewModal({ report, onClose }: ReportPreviewModalProps)
     }
   }
 
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Só fecha se clicar diretamente no backdrop, não em elementos filhos
+    if (e.target === e.currentTarget) {
+      onClose()
+    }
+  }
+
   const modalContent = (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={onClose}>
+    <div 
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" 
+      onClick={handleBackdropClick}
+    >
       {/* Modal */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
