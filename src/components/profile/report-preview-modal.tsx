@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { motion, AnimatePresence } from 'framer-motion'
+import { JsonViewer } from '@/components/ui/json-viewer'
 import type { ReportCache } from '@/lib/services/report-service-prisma'
 
 interface ReportPreviewModalProps {
@@ -118,26 +119,8 @@ export function ReportPreviewModal({ report, onClose }: ReportPreviewModalProps)
               </TabsList>
 
               <TabsContent value="fields" className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {Object.entries(report.result.fields || {})
-                    .filter(([key]) => !key.startsWith('_'))
-                    .map(([key, value]) => (
-                      <div key={key} className="bg-gray-800/50 p-4 rounded-lg">
-                        <label className="text-xs text-gray-400 uppercase tracking-wider">
-                          {key.replace(/_/g, ' ')}
-                        </label>
-                        <div className="text-white mt-1">
-                          {typeof value === 'object' ? (
-                            <pre className="text-sm font-mono bg-gray-900/50 p-3 rounded overflow-x-auto">
-                              {JSON.stringify(value, null, 2)}
-                            </pre>
-                          ) : (
-                            <p className="font-medium">{String(value)}</p>
-                          )}
-                        </div>
-                      </div>
-                    ))
-                  }
+                <div className="bg-gray-800/50 p-6 rounded-lg">
+                  <JsonViewer data={report.result.fields || report.result} />
                 </div>
               </TabsContent>
 
