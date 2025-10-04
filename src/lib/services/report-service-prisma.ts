@@ -8,7 +8,7 @@ export interface ReportCache {
   fileType?: string;
   id: string;
   userId: string;
-  organizationId: string; // Multi-tenancy
+  organizationId: string;
   agentId: string
   agentName: string
   executionId: string
@@ -35,7 +35,6 @@ export interface UserStats {
   recentActivity: Array<{ date: string; count: number }>
 }
 
-// Service com persistência em PostgreSQL
 export class ReportService {
   async saveReport(report: ReportCache): Promise<boolean> {
     try {
@@ -69,31 +68,30 @@ export class ReportService {
 
   async listReports(organizationId: string, limit = 20, offset = 0): Promise<ReportCache[]> {
     try {
-      // Filtrar relatórios da organização
-      const orgReports = Array.from(this.reports.values())
-        .filter(report => report.organizationId === organizationId)
-        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-        .slice(offset, offset + limit)
+      const reports = await prisma.report.findMany({
+        where: { organizationId },
+        orderBy: { timestamp: 'desc' },
+        take: limit,
+        skip: offset,
+      })
 
-      // Complementar com localStorage se disponível
-      if (typeof window !== 'undefined') {
-        const localReports = this.getLocalReports();
-        const filteredLocal = localReports
-          .filter(report => report.organizationId === organizationId)
-          .slice(offset, offset + limit)
-        
-        // Combinar sem duplicatas
-        const combined = [...orgReports];
-        filteredLocal.forEach(local => {
-          if (!combined.find(r => r.id === local.id)) {
-            combined.push(local);
-          }
-        });
-        
-        return combined.slice(0, limit);
-      }
-
-      return orgReports;
+      return reports.map(r => ({
+        id: r.id,
+        userId: r.userId,
+        organizationId: r.organizationId,
+        agentId: r.agentId,
+        agentName: r.agentName,
+        executionId: r.executionId,
+        timestamp: r.timestamp.toISOString(),
+        type: r.type as any,
+        result: r.result,
+        fileName: r.fileName || undefined,
+        fileSize: r.fileSize || undefined,
+        fileType: r.fileType || undefined,
+        filePath: r.filePath || undefined,
+        status: r.status as any,
+        expiresAt: r.expiresAt?.toISOString() || '',
+      }))
     } catch (error) {
       console.error('Erro ao listar relatórios:', error)
       return []
@@ -102,17 +100,29 @@ export class ReportService {
 
   async getReport(reportId: string): Promise<ReportCache | null> {
     try {
-      // Tentar memória primeiro
-      const memoryReport = this.reports.get(reportId)
-      if (memoryReport) return memoryReport
+      const report = await prisma.report.findUnique({
+        where: { id: reportId },
+      })
 
-      // Tentar localStorage
-      if (typeof window !== 'undefined') {
-        const localReports = this.getLocalReports()
-        return localReports.find(r => r.id === reportId) || null
+      if (!report) return null
+
+      return {
+        id: report.id,
+        userId: report.userId,
+        organizationId: report.organizationId,
+        agentId: report.agentId,
+        agentName: report.agentName,
+        executionId: report.executionId,
+        timestamp: report.timestamp.toISOString(),
+        type: report.type as any,
+        result: report.result,
+        fileName: report.fileName || undefined,
+        fileSize: report.fileSize || undefined,
+        fileType: report.fileType || undefined,
+        filePath: report.filePath || undefined,
+        status: report.status as any,
+        expiresAt: report.expiresAt?.toISOString() || '',
       }
-
-      return null
     } catch (error) {
       console.error('Erro ao buscar relatório:', error)
       return null
@@ -121,42 +131,24 @@ export class ReportService {
 
   async getUserStats(organizationId: string): Promise<UserStats> {
     try {
-      const orgReports = Array.from(this.reports.values())
-        .filter(report => report.organizationId === organizationId)
+      const reports = await prisma.report.findMany({
+        where: { organizationId },
+      })
 
-      // Complementar com localStorage
-      let allReports = orgReports;
-      if (typeof window !== 'undefined') {
-        const localReports = this.getLocalReports();
-        const filteredLocal = localReports.filter(report => report.organizationId === organizationId);
-        
-        // Combinar sem duplicatas
-        filteredLocal.forEach(local => {
-          if (!allReports.find(r => r.id === local.id)) {
-            allReports.push(local)
-          }
-        })
-      }
-
-      const totalReports = allReports.length
-      const successfulReports = allReports.filter(r => r.status === 'success').length
+      const totalReports = reports.length
+      const successfulReports = reports.filter(r => r.status === 'success').length
       const successRate = totalReports > 0 ? (successfulReports / totalReports) * 100 : 0
 
-      // Estatísticas básicas
-      const agentsUsed = new Set(allReports.map(r => r.agentId)).size
-      const tokensUsed = 0 // Simplificado para MVP
-      const averageProcessingTime = 0 // Simplificado para MVP
+      const agentsUsed = new Set(reports.map(r => r.agentId)).size
+      const tokensUsed = 0
+      const averageProcessingTime = 0
 
-      // Relatórios deste mês
       const thisMonth = new Date()
       thisMonth.setDate(1)
-      const reportsThisMonth = allReports.filter(r => 
-        new Date(r.timestamp) >= thisMonth
-      ).length
+      const reportsThisMonth = reports.filter(r => r.timestamp >= thisMonth).length
 
-      // Top agentes
       const agentCounts = new Map<string, { agentName: string; count: number }>()
-      allReports.forEach(report => {
+      reports.forEach(report => {
         const existing = agentCounts.get(report.agentId)
         if (existing) {
           existing.count++
@@ -173,15 +165,14 @@ export class ReportService {
         .sort((a, b) => b.count - a.count)
         .slice(0, 5)
 
-      // Atividade recente (últimos 7 dias)
       const recentActivity = []
       for (let i = 6; i >= 0; i--) {
         const date = new Date()
         date.setDate(date.getDate() - i)
         const dateStr = date.toISOString().split('T')[0]
         
-        const count = allReports.filter(r => 
-          r.timestamp.startsWith(dateStr)
+        const count = reports.filter(r => 
+          r.timestamp.toISOString().startsWith(dateStr)
         ).length
         
         recentActivity.push({ date: dateStr, count })
@@ -212,25 +203,36 @@ export class ReportService {
     }
   }
 
-  private getLocalReports(): ReportCache[] {
-    try {
-      if (typeof window === 'undefined') return []
-      
-      const stored = localStorage.getItem('automateai_reports')
-      return stored ? JSON.parse(stored) : []
-    } catch (error) {
-      console.warn('Erro ao ler relatórios do localStorage:', error)
-      return []
-    }
-  }
-
   async searchReports(organizationId: string, query: string, limit = 20): Promise<ReportCache[]> {
     try {
-      const allReports = await this.listReports(organizationId, 100);
-      return allReports.filter(report => 
-        report.agentName.toLowerCase().includes(query.toLowerCase()) ||
-        (report.result?.summary || '').toLowerCase().includes(query.toLowerCase())
-      ).slice(0, limit)
+      const reports = await prisma.report.findMany({
+        where: {
+          organizationId,
+          OR: [
+            { agentName: { contains: query, mode: 'insensitive' } },
+          ],
+        },
+        orderBy: { timestamp: 'desc' },
+        take: limit,
+      })
+
+      return reports.map(r => ({
+        id: r.id,
+        userId: r.userId,
+        organizationId: r.organizationId,
+        agentId: r.agentId,
+        agentName: r.agentName,
+        executionId: r.executionId,
+        timestamp: r.timestamp.toISOString(),
+        type: r.type as any,
+        result: r.result,
+        fileName: r.fileName || undefined,
+        fileSize: r.fileSize || undefined,
+        fileType: r.fileType || undefined,
+        filePath: r.filePath || undefined,
+        status: r.status as any,
+        expiresAt: r.expiresAt?.toISOString() || '',
+      }))
     } catch (error) {
       console.error('Erro ao buscar relatórios:', error)
       return []
@@ -239,11 +241,29 @@ export class ReportService {
 
   async getAgentReports(agentId: string, limit = 20): Promise<ReportCache[]> {
     try {
-      const allReports = Array.from(this.reports.values())
-        .filter(report => report.agentId === agentId)
-        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-        .slice(0, limit)
-      return allReports
+      const reports = await prisma.report.findMany({
+        where: { agentId },
+        orderBy: { timestamp: 'desc' },
+        take: limit,
+      })
+
+      return reports.map(r => ({
+        id: r.id,
+        userId: r.userId,
+        organizationId: r.organizationId,
+        agentId: r.agentId,
+        agentName: r.agentName,
+        executionId: r.executionId,
+        timestamp: r.timestamp.toISOString(),
+        type: r.type as any,
+        result: r.result,
+        fileName: r.fileName || undefined,
+        fileSize: r.fileSize || undefined,
+        fileType: r.fileType || undefined,
+        filePath: r.filePath || undefined,
+        status: r.status as any,
+        expiresAt: r.expiresAt?.toISOString() || '',
+      }))
     } catch (error) {
       console.error('Erro ao buscar relatórios do agente:', error)
       return []
@@ -256,14 +276,9 @@ export class ReportService {
 
   async deleteReport(reportId: string): Promise<boolean> {
     try {
-      this.reports.delete(reportId)
-
-      // Remover do localStorage
-      if (typeof window !== 'undefined') {
-        const localReports = this.getLocalReports()
-        const filtered = localReports.filter(r => r.id !== reportId)
-        localStorage.setItem('automateai_reports', JSON.stringify(filtered))
-      }
+      await prisma.report.delete({
+        where: { id: reportId },
+      })
 
       return true
     } catch (error) {
