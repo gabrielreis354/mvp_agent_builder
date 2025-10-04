@@ -18,6 +18,20 @@ export function ReportPreviewModal({ report, onClose }: ReportPreviewModalProps)
   const [copied, setCopied] = useState(false)
   const [downloading, setDownloading] = useState(false)
 
+  // Proteção contra dados inválidos
+  if (!report || !report.result) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
+        <div className="bg-gray-900 p-6 rounded-xl border border-gray-700">
+          <p className="text-white">Erro ao carregar relatório</p>
+          <button onClick={onClose} className="mt-4 px-4 py-2 bg-blue-600 text-white rounded">
+            Fechar
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   const handleCopy = () => {
     const content = report.result.extractedText || 
                    JSON.stringify(report.result.fields, null, 2)
@@ -29,13 +43,27 @@ export function ReportPreviewModal({ report, onClose }: ReportPreviewModalProps)
   const handleDownload = async () => {
     setDownloading(true)
     try {
+      // Extrair título do metadata ou usar fallback
+      const reportTitle = report.result?.metadata?.titulo_relatorio || 
+                         report.result?.fields?.titulo_relatorio ||
+                         report.fileName || 
+                         report.agentName || 
+                         'relatorio'
+      
+      const sanitizedTitle = reportTitle
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+        .replace(/[^a-z0-9]+/g, '-') // Substitui caracteres especiais por hífen
+        .replace(/^-+|-+$/g, '') // Remove hífens do início e fim
+
       // Tentar baixar HTML se existir
       if (report.result.htmlReport) {
         const blob = new Blob([report.result.htmlReport], { type: 'text/html' })
         const url = URL.createObjectURL(blob)
         const link = document.createElement('a')
         link.href = url
-        link.download = `relatorio-${report.fileName || report.agentName}-${report.id.slice(0, 8)}.html`
+        link.download = `${sanitizedTitle}.html`
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)
@@ -50,7 +78,7 @@ export function ReportPreviewModal({ report, onClose }: ReportPreviewModalProps)
         body: JSON.stringify({
           content: report.result,
           format: 'pdf',
-          fileName: report.fileName || report.agentName,
+          fileName: reportTitle,
           download: true,
         }),
       })
@@ -64,7 +92,7 @@ export function ReportPreviewModal({ report, onClose }: ReportPreviewModalProps)
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = `relatorio-${report.fileName || report.agentName}-${report.id.slice(0, 8)}.pdf`
+      link.download = `${sanitizedTitle}.pdf`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
@@ -163,7 +191,21 @@ export function ReportPreviewModal({ report, onClose }: ReportPreviewModalProps)
 
               <TabsContent value="fields" className="space-y-4">
                 <div className="bg-gray-800/50 p-6 rounded-lg">
-                  <JsonViewer data={report.result.fields || report.result} />
+                  {(() => {
+                    try {
+                      return <JsonViewer data={report.result.fields || report.result} />
+                    } catch (error) {
+                      console.error('Erro ao renderizar JsonViewer:', error)
+                      return (
+                        <div className="text-yellow-400 p-4 bg-yellow-900/20 rounded">
+                          <p className="font-semibold mb-2">Erro ao exibir dados</p>
+                          <pre className="text-xs overflow-auto">
+                            {JSON.stringify(report.result, null, 2)}
+                          </pre>
+                        </div>
+                      )
+                    }
+                  })()}
                 </div>
               </TabsContent>
 
