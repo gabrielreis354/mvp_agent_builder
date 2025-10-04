@@ -6,6 +6,10 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ['uuid'],
   },
+  generateBuildId: async () => {
+    // Use timestamp instead of crypto.randomUUID to avoid build errors
+    return `build-${Date.now()}`;
+  },
 }
 
 module.exports = nextConfig
