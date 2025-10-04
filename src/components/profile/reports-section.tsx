@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { ReportCard } from './report-card'
-import type { ReportCache } from '@/lib/services/report-service-simple'
+import type { ReportCache } from '@/lib/services/report-service-prisma'
 
 interface ReportsSectionProps {
   userId: string
