@@ -9,7 +9,7 @@ async function handlePOST(request: NextRequest): Promise<NextResponse> {
   try {
     console.log('🚀 Upload and process API called')
     
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession({ req: request as any, ...authOptions });
     // Embora a rota possa ser pública, se houver sessão, usaremos os dados dela.
     const userId = session?.user?.id;
     const organizationId = session?.user?.organizationId;

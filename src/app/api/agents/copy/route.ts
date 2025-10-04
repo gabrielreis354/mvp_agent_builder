@@ -5,7 +5,7 @@ import { prisma } from '@/lib/database/prisma';
 import { Prisma } from '@prisma/client';
 
 export async function POST(request: Request) {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession({ req: request as any, ...authOptions });
   // @ts-ignore
   const userId = session?.user?.id;
   // @ts-ignore

@@ -6,7 +6,7 @@ import { logger } from '@/lib/utils/logger'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession({ req: request as any, ...authOptions })
     
     if (!session?.user?.id) {
       return NextResponse.json(

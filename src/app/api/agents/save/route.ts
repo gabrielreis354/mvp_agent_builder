@@ -10,7 +10,7 @@ import { prisma } from '@/lib/database/prisma'
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession({ req: request as any, ...authOptions })
     if (!session?.user?.id || !session.user.organizationId) {
       return NextResponse.json({ error: 'Não autorizado ou organização não encontrada' }, { status: 401 })
     }
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession({ req: request as any, ...authOptions });
     if (!session?.user?.id || !session.user.organizationId) {
       return NextResponse.json({ error: 'Não autorizado ou organização não encontrada' }, { status: 401 });
     }
@@ -177,7 +177,7 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json()
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession({ req: request as any, ...authOptions });
     if (!session?.user?.id || !session.user.organizationId) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
@@ -247,7 +247,7 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession({ req: request as any, ...authOptions });
     if (!session?.user?.id || !session.user.organizationId) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }

@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth/auth-config';
 import { prisma } from '@/lib/database/prisma';
 
 export async function GET() {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession({ req: request as any, ...authOptions });
 
   if (!session?.user?.organizationId) {
     return NextResponse.json({ error: 'Usuário não pertence a uma organização.' }, { status: 403 });

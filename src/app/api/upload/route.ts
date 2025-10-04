@@ -5,7 +5,7 @@ import { getRedisClient } from '@/lib/redis'
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession({ req: request as any, ...authOptions })
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }

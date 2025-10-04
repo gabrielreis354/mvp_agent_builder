@@ -137,7 +137,7 @@ async function handlePOST(request: NextRequest): Promise<NextResponse> {
     }
 
     // 5. Executar o agente com o Hybrid Engine
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession({ req: request as any, ...authOptions });
     if (!session?.user?.id || !session.user.organizationId) {
       return NextResponse.json({ error: 'Não autorizado ou organização não encontrada' }, { status: 401 });
     }
@@ -224,7 +224,7 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
   }
 
   // Get user ID from headers (set by security middleware)
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession({ req: request as any, ...authOptions });
   if (!session?.user?.id || !session.user.organizationId) {
     return NextResponse.json({ error: 'Não autorizado ou organização não encontrada' }, { status: 401 });
   }

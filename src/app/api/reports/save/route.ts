@@ -6,7 +6,7 @@ import type { ReportCache } from '@/lib/services/report-service-simple'
 
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession({ req: request as any, ...authOptions })
     
     if (!session?.user?.id) {
       return NextResponse.json(
