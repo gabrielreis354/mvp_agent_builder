@@ -10,9 +10,14 @@ interface JsonViewerProps {
 export function JsonViewer({ data, level = 0 }: JsonViewerProps) {
   const indent = level * 20
 
-  // Renderizar valores primitivos
+  // Proteção contra dados inválidos
   if (data === null || data === undefined) {
     return <span className="text-gray-500 italic">null</span>
+  }
+
+  // Proteção contra loops infinitos
+  if (level > 10) {
+    return <span className="text-yellow-500 italic">... (profundidade máxima atingida)</span>
   }
 
   if (typeof data === 'string') {

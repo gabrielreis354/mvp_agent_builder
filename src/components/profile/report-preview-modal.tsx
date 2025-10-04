@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Download, Copy, CheckCircle } from 'lucide-react'
+import { X, Download, Copy, CheckCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -16,6 +16,7 @@ interface ReportPreviewModalProps {
 
 export function ReportPreviewModal({ report, onClose }: ReportPreviewModalProps) {
   const [copied, setCopied] = useState(false)
+  const [downloading, setDownloading] = useState(false)
 
   const handleCopy = () => {
     const content = report.result.extractedText || 
@@ -25,17 +26,54 @@ export function ReportPreviewModal({ report, onClose }: ReportPreviewModalProps)
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const handleDownload = () => {
-    if (report.result.htmlReport) {
-      const blob = new Blob([report.result.htmlReport], { type: 'text/html' })
+  const handleDownload = async () => {
+    setDownloading(true)
+    try {
+      // Tentar baixar HTML se existir
+      if (report.result.htmlReport) {
+        const blob = new Blob([report.result.htmlReport], { type: 'text/html' })
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `relatorio-${report.fileName || report.agentName}-${report.id.slice(0, 8)}.html`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+        return
+      }
+
+      // Gerar relatório via API
+      const response = await fetch('/api/generate-document', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: report.result,
+          format: 'pdf',
+          fileName: report.fileName || report.agentName,
+          download: true,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Erro ao gerar relatório')
+      }
+
+      // Baixar o arquivo
+      const blob = await response.blob()
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = `relatorio-${report.id}.html`
+      link.download = `relatorio-${report.fileName || report.agentName}-${report.id.slice(0, 8)}.pdf`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
       URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Erro ao baixar relatório:', error)
+      alert('Erro ao baixar relatório. Tente novamente.')
+    } finally {
+      setDownloading(false)
     }
   }
 
@@ -94,9 +132,14 @@ export function ReportPreviewModal({ report, onClose }: ReportPreviewModalProps)
                 onClick={handleDownload}
                 variant="ghost"
                 size="sm"
-                className="text-gray-400 hover:text-white"
+                disabled={downloading}
+                className="text-gray-400 hover:text-white disabled:opacity-50"
               >
-                <Download className="h-4 w-4" />
+                {downloading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4" />
+                )}
               </Button>
               <Button
                 onClick={onClose}
