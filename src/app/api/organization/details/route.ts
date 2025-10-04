@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/auth-config';
 import { prisma } from '@/lib/database/prisma';
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await getServerSession({ req: request as any, ...authOptions });
 
   if (!session?.user?.organizationId) {
