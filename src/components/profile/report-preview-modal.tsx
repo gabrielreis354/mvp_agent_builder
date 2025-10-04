@@ -37,17 +37,21 @@ export function ReportPreviewModal({ report, onClose }: ReportPreviewModalProps)
     // Formatar conteúdo de forma legível
     let content = ''
     
-    // Se tiver texto extraído, usar ele
-    if (report.result.extractedText) {
+    // Prioridade 1: Texto extraído
+    if (report.result?.extractedText) {
       content = report.result.extractedText
     } 
-    // Se tiver resumo executivo, usar ele
-    else if (report.result.summary) {
+    // Prioridade 2: Resumo executivo
+    else if (report.result?.summary) {
       content = report.result.summary
     }
-    // Caso contrário, formatar os campos de forma legível
-    else if (report.result.fields) {
+    // Prioridade 3: Formatar campos
+    else if (report.result?.fields && Object.keys(report.result.fields).length > 0) {
       content = formatFieldsAsText(report.result.fields)
+    }
+    // Prioridade 4: Formatar todo o result
+    else if (report.result && typeof report.result === 'object') {
+      content = formatFieldsAsText(report.result)
     }
     // Último recurso: JSON formatado
     else {
@@ -152,7 +156,7 @@ export function ReportPreviewModal({ report, onClose }: ReportPreviewModalProps)
   }
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    // Só fecha se clicar diretamente no backdrop, não em elementos filhos
+    // Só fecha se CLICAR E SOLTAR no backdrop (não em elementos filhos)
     if (e.target === e.currentTarget) {
       onClose()
     }
@@ -161,7 +165,7 @@ export function ReportPreviewModal({ report, onClose }: ReportPreviewModalProps)
   const modalContent = (
     <div 
       className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" 
-      onClick={handleBackdropClick}
+      onMouseDown={handleBackdropClick}
     >
       {/* Modal */}
       <motion.div
@@ -170,7 +174,8 @@ export function ReportPreviewModal({ report, onClose }: ReportPreviewModalProps)
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         transition={{ duration: 0.2 }}
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-5xl max-h-[90vh] bg-gray-900 border border-gray-700 rounded-xl shadow-2xl flex flex-col overflow-hidden"
+        onMouseDown={(e) => e.stopPropagation()}
+        className="relative w-full max-w-5xl h-[90vh] bg-gray-900 border border-gray-700 rounded-xl shadow-2xl flex flex-col overflow-hidden"
       >
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-700 bg-gradient-to-r from-gray-900 to-gray-800">
