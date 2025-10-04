@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth/auth-config'
-import { reportService } from '@/lib/services/report-service-simple'
-import type { ReportCache } from '@/lib/services/report-service-simple'
+import { reportService } from '@/lib/services/report-service-prisma'
+import type { ReportCache } from '@/lib/services/report-service-prisma'
 
 export async function POST(request: Request) {
   try {

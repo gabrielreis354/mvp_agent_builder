@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth/auth-config'
-import { reportService } from '@/lib/services/report-service-simple'
+import { reportService } from '@/lib/services/report-service-prisma'
 
 export const dynamic = 'force-dynamic'
 
