@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { X, Download, Copy, CheckCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -17,14 +17,6 @@ interface ReportPreviewModalProps {
 export function ReportPreviewModal({ report, onClose }: ReportPreviewModalProps) {
   const [copied, setCopied] = useState(false)
   const [downloading, setDownloading] = useState(false)
-
-  // Bloquear scroll do body quando modal estiver aberto
-  useEffect(() => {
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = 'unset'
-    }
-  }, [])
 
   // Proteção contra dados inválidos
   if (!report || !report.result) {
@@ -115,13 +107,13 @@ export function ReportPreviewModal({ report, onClose }: ReportPreviewModalProps)
 
   return (
     <AnimatePresence mode="wait">
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-hidden">
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+          className="absolute inset-0 bg-black/70 backdrop-blur-sm"
           onClick={onClose}
         />
 
