@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth/auth-config'
 import { reportService } from '@/lib/services/report-service-simple'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: Request) {
   try {
     const session = await getServerSession({ req: request as any, ...authOptions })
