@@ -70,3 +70,5 @@ test-*.js
 validate-*.js
 debug-*.js
 performance-*.js
+
+.vercel
