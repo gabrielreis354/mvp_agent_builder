@@ -20,6 +20,7 @@ git branch
 ```
 
 **Resultado esperado:**
+
 ```
 On branch main (ou master)
 nothing to commit, working tree clean
@@ -48,6 +49,7 @@ git branch
 ```
 
 **Resultado esperado:**
+
 ```
   main
 * rebranding  ← Asterisco indica branch ativa
@@ -65,6 +67,7 @@ node scripts/rebranding.js
 ```
 
 **Saída esperada:**
+
 ```
 🎨 Iniciando Rebranding: AutomateAI → SimplifiqueIA RH
 
@@ -119,6 +122,7 @@ git diff package.json
 **Arquivo:** `src/app/page.tsx`
 
 Revisar e personalizar:
+
 - [ ] Título principal (tom de voz)
 - [ ] Descrição de benefícios (específico para RH)
 - [ ] Depoimentos (se houver)
@@ -129,6 +133,7 @@ Revisar e personalizar:
 **Arquivos em:** `src/emails/` ou templates de email
 
 Revisar e personalizar:
+
 - [ ] Tom de voz nos emails
 - [ ] Assinatura
 - [ ] Links de suporte
@@ -138,6 +143,7 @@ Revisar e personalizar:
 **Arquivo:** `src/lib/messages.ts` (se existir)
 
 Revisar e personalizar:
+
 - [ ] Mensagens contextualizadas para RH
 - [ ] Sugestões de ação específicas
 
@@ -158,7 +164,7 @@ npm install
 npm run dev
 ```
 
-**Abrir:** http://localhost:3001
+**Abrir:** <http://localhost:3001>
 
 ---
 
@@ -167,27 +173,32 @@ npm run dev
 Verificar cada página:
 
 **Landing Page (/):**
+
 - [ ] Título: "SimplifiqueIA RH"
 - [ ] Tagline: "O Canva da Automação para RH"
 - [ ] Botões com textos corretos
 - [ ] Footer atualizado
 
 **Login (/auth/signin):**
+
 - [ ] Título da página
 - [ ] Textos de ajuda
 - [ ] Links
 
 **Cadastro (/auth/signup):**
+
 - [ ] Título da página
 - [ ] Formulário
 - [ ] Mensagens
 
 **Builder (/builder):**
+
 - [ ] Título da página
 - [ ] Tooltips
 - [ ] Mensagens de validação
 
 **Perfil (/profile):**
+
 - [ ] Mensagem de boas-vindas
 - [ ] Cards
 - [ ] Botões
@@ -216,6 +227,7 @@ npm run build
 ```
 
 **Resultado esperado:**
+
 ```
 ✓ Compiled successfully
 ✓ Linting and checking validity of types
@@ -238,9 +250,10 @@ Route (app)                              Size
 npm run start
 ```
 
-**Abrir:** http://localhost:3001
+**Abrir:** <http://localhost:3001>
 
 **Verificar:**
+
 - [ ] Todas as páginas carregam
 - [ ] Sem erros no console
 - [ ] Funcionalidades básicas funcionam
@@ -306,6 +319,7 @@ git show --name-only
 ```
 
 **Vantagens:**
+
 - ✅ Código principal intocado
 - ✅ Pode testar extensivamente
 - ✅ Pode fazer ajustes incrementais
@@ -441,12 +455,14 @@ PORT=3002 npm run dev
 ### **Antes de Considerar Completo:**
 
 **Código:**
+
 - [ ] Branch rebranding criada
 - [ ] Script de rebranding executado
 - [ ] Ajustes manuais feitos
 - [ ] Commit realizado
 
 **Testes:**
+
 - [ ] npm run dev funciona
 - [ ] npm run build funciona
 - [ ] Todas as páginas carregam
@@ -454,12 +470,14 @@ PORT=3002 npm run dev
 - [ ] Sem erros no console
 
 **Visual:**
+
 - [ ] Título correto em todas as páginas
 - [ ] Tagline atualizada
 - [ ] Footer atualizado
 - [ ] Emails atualizados
 
 **Documentação:**
+
 - [ ] README.md atualizado
 - [ ] package.json atualizado
 - [ ] .env.example atualizado

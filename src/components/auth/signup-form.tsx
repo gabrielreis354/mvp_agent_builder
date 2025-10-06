@@ -142,7 +142,7 @@ export function SignUpForm() {
               </motion.div>
               <h2 className="text-2xl font-bold text-white mb-2">Conta Criada!</h2>
               <p className="text-gray-300 mb-4">
-                Bem-vindo ao AutomateAI! Redirecionando para o login...
+                Bem-vindo ao SimplifiqueIA RH! Redirecionando para o login...
               </p>
             </div>
           </div>
@@ -167,7 +167,7 @@ export function SignUpForm() {
           <Link href="/" className="inline-flex items-center justify-center mb-6">
             <Brain className="h-10 w-10 text-blue-400 mr-3" />
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              AutomateAI
+              SimplifiqueIA
             </h1>
           </Link>
         </div>
@@ -369,7 +369,7 @@ export function SignUpForm() {
                       className="w-full px-3 py-2 border border-white/30 rounded-md focus:border-blue-400 focus:ring-blue-400/50 bg-white/10 text-white backdrop-blur-sm"
                       required
                     >
-                      <option value="" className="bg-gray-800 text-white">Como pretende usar o AutomateAI?</option>
+                      <option value="" className="bg-gray-800 text-white">Como pretende usar o SimplifiqueIA RH?</option>
                       {useCaseOptions.map(option => (
                         <option key={option.value} value={option.value} className="bg-gray-800 text-white">
                           {option.label}

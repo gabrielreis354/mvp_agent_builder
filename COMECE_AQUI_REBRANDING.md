@@ -18,7 +18,7 @@ node scripts/rebranding.js
 npm run dev
 ```
 
-**Pronto!** Abra http://localhost:3001 e veja as mudanças.
+**Pronto!** Abra <http://localhost:3001> e veja as mudanças.
 
 ---
 
@@ -32,6 +32,7 @@ scripts\setup-rebranding-branch.bat
 ```
 
 Ou manualmente:
+
 ```bash
 git checkout -b rebranding
 ```
@@ -45,6 +46,7 @@ node scripts/rebranding.js
 ```
 
 Isso vai atualizar automaticamente:
+
 - ✅ Nome: AutomateAI → SimplifiqueIA RH
 - ✅ Domínio: automationia.com.br → simplifiqueia.com.br
 - ✅ Tagline: "O Canva da Automação para RH"
@@ -63,6 +65,7 @@ git diff
 ### **4. Ajustes Manuais (10 min)**
 
 Personalizar textos específicos:
+
 - Landing page (`src/app/page.tsx`)
 - Emails (`src/emails/`)
 - Mensagens de erro
@@ -76,9 +79,10 @@ rm -rf .next
 npm run dev
 ```
 
-Abrir: http://localhost:3001
+Abrir: <http://localhost:3001>
 
 Verificar:
+
 - [ ] Landing page
 - [ ] Login/Cadastro
 - [ ] Builder
@@ -134,12 +138,14 @@ git push origin main
 ## 🆘 Problemas?
 
 ### **Erro: Port 3001 in use**
+
 ```bash
 netstat -ano | findstr :3001
 taskkill /PID <PID> /F
 ```
 
 ### **Erro: Build failed**
+
 ```bash
 rm -rf .next
 npm install
@@ -147,6 +153,7 @@ npm run build
 ```
 
 ### **Voltar atrás**
+
 ```bash
 git checkout main
 git branch -D rebranding

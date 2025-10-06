@@ -1,6 +1,6 @@
-# 🤖 AutomateAI - Plataforma de Automação Colaborativa
+# 🤖 SimplifiqueIA RH - Plataforma de Automação Colaborativa
 
-O AutomateAI é uma plataforma de automação de processos que permite a criação, execução e compartilhamento de agentes de IA em um ambiente colaborativo. Projetado para equipes, ele transforma a maneira como as empresas automatizam tarefas, promovendo a reutilização de inteligência e a governança centralizada.
+O SimplifiqueIA RH é uma plataforma de automação de processos que permite a criação, execução e compartilhamento de agentes de IA em um ambiente colaborativo. Projetado para equipes, ele transforma a maneira como as empresas automatizam tarefas, promovendo a reutilização de inteligência e a governança centralizada.
 
 ## ✨ Funcionalidades Principais
 

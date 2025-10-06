@@ -71,7 +71,7 @@ function SignInFormContent() {
           <Link href="/" className="inline-flex items-center justify-center mb-6">
             <Brain className="h-10 w-10 text-blue-400 mr-3" />
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              AutomateAI
+              SimplifiqueIA
             </h1>
           </Link>
           <h2 className="text-2xl font-bold mb-2 text-white">Bem-vindo de volta</h2>

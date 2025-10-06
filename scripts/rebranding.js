@@ -13,10 +13,11 @@ const path = require('path')
 
 // Configuração de substituições
 const REPLACEMENTS = [
-  // Nome do produto
+  // Nome do produto (ordem importa - mais específico primeiro)
   { from: /AutomateAI MVP/g, to: 'SimplifiqueIA RH' },
   { from: /AutomateAI/g, to: 'SimplifiqueIA RH' },
   { from: /Automate AI/g, to: 'Simplifique IA' },
+  { from: /AUTOMATEAI/g, to: 'SIMPLIFIQUEIA RH' },
   
   // Domínios
   { from: /automationia\.com\.br/g, to: 'simplifiqueia.com.br' },
@@ -29,9 +30,10 @@ const REPLACEMENTS = [
   // Slugs e IDs (lowercase)
   { from: /automateai-/g, to: 'simplifiqueia-' },
   { from: /"automateai"/g, to: '"simplifiqueia"' },
+  { from: /'automateai'/g, to: "'simplifiqueia'" },
   
   // Taglines
-  { from: /O Canva da Automação/g, to: 'O Canva da Automação para RH' },
+  { from: /O Canva da Automação(?! para RH)/g, to: 'O Canva da Automação para RH' },
 ]
 
 // Diretórios para processar
@@ -75,10 +77,13 @@ function processFile(filePath) {
   try {
     let content = fs.readFileSync(filePath, 'utf8')
     let modified = false
+    let matchCount = 0
     
     // Aplicar cada substituição
     REPLACEMENTS.forEach(({ from, to }) => {
-      if (content.match(from)) {
+      const matches = content.match(from)
+      if (matches) {
+        matchCount += matches.length
         content = content.replace(from, to)
         modified = true
       }
@@ -87,7 +92,7 @@ function processFile(filePath) {
     // Salvar se modificado
     if (modified) {
       fs.writeFileSync(filePath, content, 'utf8')
-      console.log(`✅ Atualizado: ${filePath}`)
+      console.log(`✅ Atualizado: ${filePath} (${matchCount} substituições)`)
       return 1
     }
     

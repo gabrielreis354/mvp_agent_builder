@@ -22,38 +22,38 @@ export default function HomePage() {
     {
       icon: Brain,
       title: "Visual Builder",
-      description: "Drag & drop interface como Figma para criar agentes de IA",
+      description: "Interface drag & drop intuitiva. Crie agentes sem código, como no Canva",
       color: "from-blue-500 to-cyan-500"
     },
     {
       icon: Zap,
       title: "Linguagem Natural",
-      description: "Descreva o que precisa e a IA cria o agente automaticamente",
+      description: "Descreva o que precisa em português e a IA cria o agente automaticamente",
       color: "from-purple-500 to-pink-500"
     },
     {
       icon: Users,
-      title: "Multi-AI Native",
-      description: "OpenAI + Anthropic + Google integrados nativamente",
+      title: "Multi-Empresa",
+      description: "Gestão multi-usuário e multi-tenancy. Perfeito para equipes de RH",
       color: "from-green-500 to-emerald-500"
     }
   ]
 
   const useCases = [
     {
+      title: "Análise de Currículos",
+      description: "Triagem automática com IA. Ranking de candidatos em segundos",
+      category: "Recrutamento"
+    },
+    {
       title: "Análise de Contratos",
-      description: "Extrai dados automaticamente de contratos e documentos jurídicos",
-      category: "RH & Jurídico"
+      description: "Extrai dados de contratos CLT, identifica riscos e valida conformidade",
+      category: "Jurídico RH"
     },
     {
-      title: "Suporte ao Cliente",
-      description: "Classifica e responde tickets automaticamente com IA",
-      category: "Atendimento"
-    },
-    {
-      title: "Análise Financeira",
-      description: "Processa despesas e detecta anomalias em dados financeiros",
-      category: "Financeiro"
+      title: "Gestão de Despesas",
+      description: "Processa vale-transporte, refeição e benefícios automaticamente",
+      category: "Financeiro RH"
     }
   ]
 
@@ -79,20 +79,20 @@ export default function HomePage() {
             <div className="flex items-center justify-center mb-6">
               <Brain className="h-12 w-12 text-blue-400 mr-3" />
               <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                AutomateAI
+                SimplifiqueIA
               </h1>
             </div>
             
             <h2 className="text-4xl md:text-6xl font-bold mb-6">
-              Democratize a criação de
+              Automatize seu RH com
               <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                {" "}agentes de IA
+                {" "}Inteligência Artificial
               </span>
             </h2>
             
             <p className="text-xl text-gray-200 mb-8 max-w-3xl mx-auto">
-              Plataforma híbrida que permite criar agentes inteligentes via Visual Builder 
-              ou Linguagem Natural. Multi-AI native com OpenAI, Anthropic e Google.
+              Crie agentes inteligentes para RH em minutos. Interface visual drag-and-drop ou linguagem natural. 
+              Multi-usuário, multi-empresa. OpenAI, Anthropic e Google integrados.
             </p>
 
             <div className="flex flex-wrap gap-4 justify-center">
@@ -180,10 +180,10 @@ export default function HomePage() {
             className="text-center mb-16"
           >
             <h3 className="text-3xl md:text-4xl font-bold mb-4">
-              Duas formas de criar agentes
+              Simples como deve ser
             </h3>
             <p className="text-xl text-gray-200">
-              Escolha a abordagem que funciona melhor para você
+              Duas formas de criar: visual ou por texto. Você escolhe
             </p>
           </motion.div>
 
@@ -228,10 +228,10 @@ export default function HomePage() {
             className="text-center mb-16"
           >
             <h3 className="text-3xl md:text-4xl font-bold mb-4">
-              Casos de uso reais
+              Automatize processos críticos de RH
             </h3>
             <p className="text-xl text-gray-200">
-              Veja como empresas estão usando nossa plataforma
+              Templates prontos para usar. Resultados em minutos
             </p>
           </motion.div>
 
@@ -264,10 +264,10 @@ export default function HomePage() {
             transition={{ duration: 0.8 }}
           >
             <h3 className="text-3xl md:text-4xl font-bold mb-6">
-              Pronto para democratizar a IA na sua empresa?
+              Simplifique seu RH com IA
             </h3>
             <p className="text-xl text-gray-200 mb-8">
-              Crie seu primeiro agente em menos de 5 minutos
+              Comece grátis. Primeiro agente em 5 minutos. Sem cartão de crédito.
             </p>
             
             <Link href="/builder">

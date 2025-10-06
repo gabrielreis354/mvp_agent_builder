@@ -1,6 +1,7 @@
 {
-  "name": "mvp-agent-builder",
-  "version": "0.1.0",
+  "name": "simplifiqueia-rh",
+  "version": "1.0.0",
+  "description": "SimplifiqueIA RH - Automação Inteligente para Recursos Humanos",
   "private": true,
   "scripts": {
     "dev": "next dev -p 3001",
