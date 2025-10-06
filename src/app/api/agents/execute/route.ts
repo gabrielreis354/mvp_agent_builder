@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth/auth-config";
 import { hybridRuntimeEngine } from "@/lib/runtime/hybrid-engine";
 import { prisma } from "@/lib/database/prisma";
+import { withStandardMiddleware } from "@/lib/errors/api-error-middleware";
+import { ValidationError, FileProcessingError } from "@/lib/errors/error-handler";
 
 async function handlePOST(request: NextRequest): Promise<NextResponse> {
   try {
@@ -14,18 +16,32 @@ async function handlePOST(request: NextRequest): Promise<NextResponse> {
     const file = formData.get("file") as File | null;
 
     if (!agentString) {
-      console.error(
-        "❌ [API Execute] Agent configuration (agent) not found in the request."
-      );
-      return NextResponse.json(
-        {
-          error: "Configuração do agente (agent) não encontrada na requisição.",
-        },
-        { status: 400 }
-      );
+      throw new ValidationError(
+        'agent',
+        'Configuração do agente não encontrada na requisição',
+        { hasFormData: true }
+      )
     }
 
-    let agent = JSON.parse(agentString);
+    let agent;
+    try {
+      agent = JSON.parse(agentString);
+    } catch (parseError) {
+      throw new ValidationError(
+        'agent',
+        'Configuração do agente está em formato inválido (JSON inválido)',
+        { agentString: agentString.substring(0, 100) }
+      )
+    }
+
+    // Validar estrutura básica do agente
+    if (!agent.nodes || agent.nodes.length === 0) {
+      throw new ValidationError(
+        'agent.nodes',
+        'Agente deve ter pelo menos um nó configurado',
+        { agentId: agent.id, agentName: agent.name }
+      )
+    }
 
     
     // 2. Montar o objeto 'input' a partir dos dados do formulário
@@ -209,10 +225,8 @@ async function handlePOST(request: NextRequest): Promise<NextResponse> {
   }
 }
 
-// Exporta a função POST
-export async function POST(request: NextRequest) {
-  return handlePOST(request);
-}
+// Exporta a função POST com middleware de erro
+export const POST = withStandardMiddleware(handlePOST);
 
 async function handleGET(request: NextRequest): Promise<NextResponse> {
   const { searchParams } = new URL(request.url)

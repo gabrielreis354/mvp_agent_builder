@@ -22,6 +22,7 @@ import "reactflow/dist/style.css";
 import { NodeToolbar } from "./node-toolbar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { NodePalette } from "./node-palette";
+import { FriendlyNodePalette } from "./friendly-node-palette";
 import { CustomNode } from "./custom-node";
 import { AgentNode, AgentEdge } from "@/types/agent";
 
@@ -34,9 +35,10 @@ interface VisualCanvasProps {
   onAgentChange?: (nodes: AgentNode[], edges: AgentEdge[]) => void
   initialNodes?: AgentNode[]
   initialEdges?: AgentEdge[]
+  useFriendlyMode?: boolean
 }
 
-export function VisualCanvas({ onSave, onAgentChange, initialNodes = [], initialEdges = [] }: VisualCanvasProps) {
+export function VisualCanvas({ onSave, onAgentChange, initialNodes = [], initialEdges = [], useFriendlyMode = true }: VisualCanvasProps) {
   const reactFlowWrapper = useRef<HTMLDivElement>(null)
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null)
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
@@ -599,9 +601,9 @@ Substitua todos os placeholders [...] com os dados reais extraídos da folha de 
 
   return (
     <div className="h-full flex">
-      {/* Node Palette */}
-      <div className="w-64 bg-gray-900 border-r border-gray-700 p-4">
-        <NodePalette />
+      {/* Node Palette - Condicional baseado no modo */}
+      <div className="w-64 bg-gray-900 border-r border-gray-700 overflow-hidden">
+        {useFriendlyMode ? <FriendlyNodePalette /> : <NodePalette />}
       </div>
 
       {/* Canvas */}

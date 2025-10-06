@@ -6,6 +6,16 @@ import { AIProviderManager } from '@/lib/ai-providers'
 import { safeJsonParse } from '@/lib/utils/safe-json'
 import { logger } from '@/lib/utils/logger'
 import { CachedAIProvider, createCachedAIProvider } from '@/lib/ai/cached-ai-provider'
+import { 
+  executeNodeSafely, 
+  executeAINodeWithFallback,
+  validateDocumentRequirement,
+  validateExtractedText,
+  FileProcessingError,
+  NodeExecutionError,
+  ValidationError
+} from '@/lib/errors/runtime-error-handler'
+import { ErrorHandler } from '@/lib/errors/error-handler'
 
 export interface HybridExecutionOptions {
   uploadedFiles?: File[];
@@ -20,6 +30,13 @@ export interface HybridExecutionOptions {
 
 export interface HybridExecutionResult extends ExecutionResult {
   generatedOutput?: GeneratedOutput
+  errorDetails?: {
+    type: string
+    severity: string
+    suggestedAction?: string
+    retryable: boolean
+    technicalMessage: string
+  }
 }
 
 export class HybridRuntimeEngine {
@@ -98,51 +115,57 @@ export class HybridRuntimeEngine {
         })
       }
 
-      // Executar nós do agente
+      // Executar nós do agente com tratamento de erro robusto
       const nodeResults: Record<string, any> = {}
       const orderedNodes = this.getExecutionOrder(agent.nodes, agent.edges)
       
       for (const node of orderedNodes) {
         const nodeStartTime = Date.now()
         
-        try {
-          const result = await this.executeNode(node, context.variables, context)
-          const nodeDuration = Date.now() - nodeStartTime
-          
-          nodeResults[node.id] = result
-          
-          // Corrigir spread de string: se result é string, não fazer spread
-          if (typeof result === 'string') {
-            context.variables = { ...context.variables, [node.id]: result }
-          } else if (typeof result === 'object' && result !== null) {
-            context.variables = { ...context.variables, ...result }
-          } else {
-            context.variables = { ...context.variables, [node.id]: result }
-          }
-          
-          logger.logNodeExecution(
-            executionId,
-            node.id,
-            node.data?.label || node.type || 'Unknown Node',
-            true,
-            nodeDuration,
-            result
-          )
-          
-        } catch (nodeError) {
-          const nodeDuration = Date.now() - nodeStartTime
-          
+        // Executar nó com tratamento de erro seguro
+        const result = await executeNodeSafely(
+          node,
+          () => this.executeNode(node, context.variables, context),
+          { executionId, agentId: agent.id || 'unknown' }
+        )
+        
+        const nodeDuration = Date.now() - nodeStartTime
+        
+        if (!result.success) {
+          // Erro já está logado pelo executeNodeSafely
           logger.logNodeExecution(
             executionId,
             node.id,
             node.data?.label || node.type || 'Unknown Node',
             false,
             nodeDuration,
-            nodeError
+            result.error
           )
           
-          throw nodeError
+          // Propagar erro com informações amigáveis
+          throw result.error
         }
+        
+        // Sucesso - processar resultado
+        nodeResults[node.id] = result.data
+        
+        // Corrigir spread de string: se result é string, não fazer spread
+        if (typeof result.data === 'string') {
+          context.variables = { ...context.variables, [node.id]: result.data }
+        } else if (typeof result.data === 'object' && result.data !== null) {
+          context.variables = { ...context.variables, ...result.data }
+        } else {
+          context.variables = { ...context.variables, [node.id]: result.data }
+        }
+        
+        logger.logNodeExecution(
+          executionId,
+          node.id,
+          node.data?.label || node.type || 'Unknown Node',
+          true,
+          nodeDuration,
+          result.data
+        )
       }
 
       const executionTime = Date.now() - context.startTime.getTime()
@@ -162,14 +185,28 @@ export class HybridRuntimeEngine {
 
     } catch (error) {
       const executionTime = Date.now() - context.startTime.getTime()
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       
-      logger.completeExecution(executionId, false, errorMessage)
+      // Tratar erro com ErrorHandler
+      const appError = ErrorHandler.handle(error, {
+        executionId,
+        agentId: agent.id,
+        agentName: agent.name,
+        userId
+      })
+      
+      logger.completeExecution(executionId, false, appError.userMessage)
       
       return {
         executionId,
         success: false,
-        error: errorMessage,
+        error: appError.userMessage,
+        errorDetails: {
+          type: appError.type,
+          severity: appError.severity,
+          suggestedAction: appError.suggestedAction,
+          retryable: appError.retryable,
+          technicalMessage: appError.technicalMessage
+        },
         executionTime,
         nodeResults: {}
       }
@@ -219,86 +256,63 @@ export class HybridRuntimeEngine {
   }
 
   private async executeAINodeWithCache(node: AgentNode, variables: any, context: ExecutionContext): Promise<any> {
-    const { prompt, provider = 'anthropic', model = 'claude-3-5-haiku-20241022', temperature = 0.7 } = node.data
+    const { prompt, provider = 'openai', model = 'gpt-4o-mini', temperature = 0.7 } = node.data
     
     if (!prompt) {
-      throw new Error('AI node must have a prompt')
+      throw new ValidationError('prompt', 'Nó de IA deve ter um prompt', { nodeId: node.id })
     }
 
     // Construir contexto da IA com variáveis
     let aiContext = prompt
     
-    // 🎯 VALIDAÇÃO CRÍTICA: Se o prompt menciona documento/arquivo mas não há texto extraído, ABORTAR
-    const promptLower = prompt.toLowerCase();
-    const needsDocument = promptLower.includes('documento') || 
-                          promptLower.includes('arquivo') || 
-                          promptLower.includes('pdf') || 
-                          promptLower.includes('contrato') ||
-                          promptLower.includes('currículo') ||
-                          promptLower.includes('analise') ||
-                          promptLower.includes('extraia');
+    // 🎯 VALIDAÇÃO CRÍTICA: Validar se prompt requer documento
+    validateDocumentRequirement(prompt, variables.extractedText, {
+      nodeId: node.id,
+      nodeLabel: node.data.label || 'AI Node'
+    })
     
-    if (needsDocument && (!variables.extractedText || variables.extractedText.trim().length === 0)) {
-      logger.error('❌ AI node requires document but no text was extracted', `EXEC:${context.executionId}`, {
-        nodeId: node.id,
-        prompt: prompt.substring(0, 100),
-        hasExtractedText: !!variables.extractedText,
-        extractedTextLength: variables.extractedText?.length || 0
-      });
-      
-      throw new Error(
-        'Nenhum texto foi extraído do documento. Verifique se o arquivo foi enviado corretamente e se é um PDF válido. ' +
-        'Não é possível prosseguir com a análise sem o conteúdo do documento.'
-      );
-    }
-    
+    // Adicionar texto extraído ao contexto se disponível
     if (variables.extractedText) {
+      // Validar qualidade do texto extraído
+      validateExtractedText(variables.extractedText, {
+        nodeId: node.id,
+        nodeLabel: node.data.label || 'AI Node',
+        fileName: variables.fileName
+      })
+      
       aiContext = `${prompt}\n\nTexto extraído do documento:\n${variables.extractedText}`
-      logger.info(`📄 Document text added to AI context: ${variables.extractedText.length} characters`, `EXEC:${context.executionId}`);
+      logger.info(`📄 Document text added to AI context: ${variables.extractedText.length} characters`, `EXEC:${context.executionId}`)
     }
 
-    try {
-      // Usar AI Provider SEM cache para análises de documentos (cada documento é único)
-      const response = await this.cachedAIProvider.generateCompletion(
-        provider,
-        aiContext,
+    // Executar com fallback automático entre providers
+    logger.info(`🤖 Executing AI node with fallback system`, `EXEC:${context.executionId}`, {
+      nodeId: node.id,
+      preferredProvider: provider,
+      model
+    })
+
+    const response = await executeAINodeWithFallback(
+      node,
+      this.aiProviderManager,
+      aiContext,
+      {
+        preferredProvider: provider,
         model,
-        {
-          temperature,
-          max_tokens: 4000,
-          useCache: false, // ❌ DESABILITAR cache para análises únicas
-          cacheTTL: 0,
-          userId: context.userId
-        }
-      )
-
-      // Log informações de cache e custo
-      if (response.fromCache) {
-        logger.info(`💰 AI response served from cache - SAVED $${response.cost.toFixed(4)}`, `AI:${provider}`, {
-          model,
-          tokens: response.tokens,
-          duration: response.duration,
-          cacheHit: true
-        })
-      } else {
-        logger.info(`🔥 AI response from real call - COST $${response.cost.toFixed(4)}`, `AI:${provider}`, {
-          model,
-          tokens: response.tokens,
-          duration: response.duration,
-          cacheHit: false
-        })
+        temperature,
+        maxTokens: 4000
       }
+    )
 
-      // Retornar APENAS a resposta da IA como string
-      // Metadados ficam apenas nos logs, não no fluxo de dados
-      return response.content
+    // Log informações de custo
+    logger.info(`✅ AI response received`, `EXEC:${context.executionId}`, {
+      nodeId: node.id,
+      provider: response.provider || provider,
+      tokens: response.tokens_used,
+      cost: response.cost
+    })
 
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown AI error';
-      logger.error('AI node execution failed', `AI:${provider}`, { model, error: errorMessage }, error as Error);
-      // Não usar mais fallback com dados mockados. Propagar o erro.
-      throw new Error(`AI provider ${provider} failed: ${errorMessage}`);
-    }
+    // Retornar APENAS a resposta da IA como string
+    return response.content || response.response || response
   }
 
   private async executeLogicNode(node: AgentNode, variables: any, context: ExecutionContext): Promise<any> {

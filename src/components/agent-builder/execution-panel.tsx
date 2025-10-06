@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Upload, Mail, Download, Play, FileText, FileSpreadsheet } from 'lucide-react';
 import { Agent, ExecutionResult } from '@/types/agent';
+import { ErrorAlert, useErrorAlert } from '@/components/ui/error-alert';
+import { createUserFriendlyError } from '@/lib/errors/runtime-error-handler';
 
 interface ExecutionPanelProps {
   agent: Agent | null;
@@ -22,6 +24,7 @@ export function ExecutionPanel({ agent, onExecute }: ExecutionPanelProps) {
   const [deliveryMethod, setDeliveryMethod] = useState<'email' | 'download'>('download');
   const [outputFormat, setOutputFormat] = useState<'pdf' | 'docx' | 'excel'>('pdf');
   const [fileError, setFileError] = useState<string | null>(null);
+  const { error, showError, clearError } = useErrorAlert();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -112,6 +115,21 @@ export function ExecutionPanel({ agent, onExecute }: ExecutionPanelProps) {
 
     } catch (error) {
       console.error('Erro na execução do ExecutionPanel:', error);
+      
+      // Criar mensagem amigável com o sistema de erros
+      const friendly = createUserFriendlyError(error);
+      
+      // Mostrar alerta de erro
+      showError({
+        title: friendly.title,
+        message: friendly.message,
+        suggestedAction: friendly.suggestedAction,
+        canRetry: friendly.canRetry,
+        onRetry: friendly.canRetry ? handleExecute : undefined,
+        severity: 'error'
+      });
+      
+      // Também passar para o callback (compatibilidade)
       const errorResult: ExecutionResult = {
         success: false,
         output: null,
@@ -119,7 +137,7 @@ export function ExecutionPanel({ agent, onExecute }: ExecutionPanelProps) {
         executionTime: 0,
         cost: 0, tokensUsed: 0, logs: [],
         error: {
-          message: error instanceof Error ? error.message : 'Erro desconhecido',
+          message: friendly.message,
           stack: error instanceof Error ? error.stack : undefined,
         },
       };
@@ -191,6 +209,19 @@ export function ExecutionPanel({ agent, onExecute }: ExecutionPanelProps) {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Error Alert */}
+          {error && (
+            <ErrorAlert
+              title={error.title}
+              message={error.message}
+              suggestedAction={error.suggestedAction}
+              canRetry={error.canRetry}
+              onRetry={error.onRetry}
+              onDismiss={clearError}
+              severity={error.severity}
+            />
+          )}
+
           {/* Upload */}
           <div className="p-4 border border-gray-700 rounded-lg bg-gray-900/50">
             <Label htmlFor="file-upload-builder" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-600 rounded-lg cursor-pointer hover:bg-gray-800">

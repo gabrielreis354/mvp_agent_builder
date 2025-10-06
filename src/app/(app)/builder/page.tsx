@@ -16,6 +16,7 @@ import { VisualCanvas, VisualCanvasWrapper } from '@/components/agent-builder/vi
 import { NodeToolbar } from '@/components/agent-builder/node-toolbar'
 import { NaturalLanguageBuilder } from '@/components/agent-builder/natural-language-builder'
 import { TemplateGallery } from '@/components/agent-builder/template-gallery'
+import { FriendlyNodePalette } from '@/components/agent-builder/friendly-node-palette'
 import { useSearchParams } from 'next/navigation';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button'
@@ -40,6 +41,7 @@ type BuilderMode = 'templates' | 'visual' | 'natural'
 
 export default function BuilderPage() {
   const [mode, setMode] = useState<BuilderMode>('templates')
+  const [useFriendlyMode, setUseFriendlyMode] = useState(true) // Modo amigável por padrão
   const [agent, setAgent] = useState<Partial<Agent>>({
     id: `agent-${Date.now()}`, // Garantir que sempre tenha um ID
     name: 'Novo Agente',
@@ -319,6 +321,21 @@ export default function BuilderPage() {
             </div>
 
             <div className="flex items-center gap-3">
+              {/* Friendly Mode Toggle */}
+              {mode === 'visual' && (
+                <button
+                  onClick={() => setUseFriendlyMode(!useFriendlyMode)}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                    useFriendlyMode
+                      ? 'bg-purple-600 text-white hover:bg-purple-700'
+                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  }`}
+                  title={useFriendlyMode ? 'Modo Simples (RH)' : 'Modo Avançado (Dev)'}
+                >
+                  {useFriendlyMode ? '👤 Modo Simples' : '⚙️ Modo Avançado'}
+                </button>
+              )}
+
               {/* Mode Toggle */}
               <div className="flex bg-gray-800 rounded-lg p-1">
                 <button
@@ -395,6 +412,7 @@ export default function BuilderPage() {
               onAgentChange={handleAgentChange}
               initialNodes={agent.nodes}
               initialEdges={agent.edges}
+              useFriendlyMode={useFriendlyMode}
             />
           ) : (
             <div className="h-full">
