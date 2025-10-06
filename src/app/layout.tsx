@@ -14,12 +14,26 @@ export const metadata: Metadata = {
   title: 'SimplifiqueIA RH - Automação Inteligente para Recursos Humanos',
   description: 'Automatize processos de RH com IA. Análise de currículos, contratos, despesas e mais. Interface visual simples. Multi-usuário e multi-empresa.',
   keywords: ['automação rh', 'ia recursos humanos', 'análise currículos', 'contratos clt', 'gestão rh', 'simplifique rh'],
+  icons: {
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', sizes: 'any' }
+    ],
+    apple: '/apple-icon.svg',
+  },
   openGraph: {
     title: 'SimplifiqueIA RH - Automatize seu RH com Inteligência Artificial',
     description: 'Crie agentes inteligentes para RH em minutos. Interface visual ou linguagem natural. Multi-usuário, multi-empresa.',
     type: 'website',
     locale: 'pt_BR',
-  }
+    siteName: 'SimplifiqueIA RH',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'SimplifiqueIA RH',
+    description: 'Automatize seu RH com Inteligência Artificial',
+  },
+  manifest: '/manifest.json',
 }
 
 export default function RootLayout({
