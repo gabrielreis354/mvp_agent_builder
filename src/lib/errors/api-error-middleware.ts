@@ -139,7 +139,13 @@ export function withRateLimit(
     // Usar IP como identificador (em produção, usar user ID)
     const identifier = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown'
     
-    const rateLimit = checkRateLimit(identifier, options)
+    // Garantir valores padrão
+    const rateLimitOptions = {
+      maxRequests: options?.maxRequests ?? 100,
+      windowMs: options?.windowMs ?? 60000
+    }
+    
+    const rateLimit = checkRateLimit(identifier, rateLimitOptions)
 
     if (!rateLimit.allowed) {
       return NextResponse.json(

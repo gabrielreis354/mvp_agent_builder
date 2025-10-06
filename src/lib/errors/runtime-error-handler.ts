@@ -173,7 +173,7 @@ export async function executeAINodeWithFallback(
 
       logger.info(`✅ Provider ${provider} bem-sucedido`, 'AI_FALLBACK', {
         nodeId: node.id,
-        tokensUsed: result.tokens_used
+        tokensUsed: (result as any).tokens_used || 0
       })
 
       return result
