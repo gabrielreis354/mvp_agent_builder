@@ -51,6 +51,14 @@ Os seguintes documentos foram consolidados nos 5 principais:
 
 ## 🚀 Início Rápido
 
+**🆕 REBRANDING PARA SIMPLIFIQUEIA RH:**
+
+- **../COMECE_AQUI_REBRANDING.md** - Guia rápido de 30 minutos
+- **REBRANDING_PASSO_A_PASSO.md** - Passo a passo detalhado
+- **REBRANDING_RESUMO.md** - Resumo executivo
+
+---
+
 **Novo no projeto?** Leia nesta ordem:
 
 1. **SETUP.md** - Configure seu ambiente
