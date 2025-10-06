@@ -140,12 +140,13 @@ export function AgentExecutionModalV2({
       }
 
       setExecutionProgress({
-        status: "Enviando para a API...",
+        status: "Analisando documento... Isso pode levar alguns minutos.",
         percentage: 20,
       });
       const response = await fetch("/api/agents/execute", {
         method: "POST",
         body: executionData,
+        signal: AbortSignal.timeout(300000), // 5 minutos de timeout
       });
 
       if (!response.ok) {
@@ -201,7 +202,8 @@ export function AgentExecutionModalV2({
         description: errorMessage,
         variant: "destructive",
       });
-      setIsExecuting(false); // Permite que o usuário feche o modal em caso de erro
+      setIsExecuting(false);
+      setExecutionProgress(undefined); // Limpar progresso em caso de erro
     }
   };
 

@@ -6,6 +6,9 @@ import { prisma } from "@/lib/database/prisma";
 import { withStandardMiddleware } from "@/lib/errors/api-error-middleware";
 import { ValidationError, FileProcessingError } from "@/lib/errors/error-handler";
 
+// Aumentar timeout para 5 minutos (análises longas)
+export const maxDuration = 300;
+
 async function handlePOST(request: NextRequest): Promise<NextResponse> {
   try {
     console.log("📥 [API Execute] Received new agent execution request...");
@@ -180,10 +183,22 @@ async function handlePOST(request: NextRequest): Promise<NextResponse> {
 
     // 6. 💾 SALVAR EXECUÇÃO NO BANCO DE DADOS
     try {
+      // Validar se agente existe no banco antes de salvar execução
+      let validAgentId = agent.id;
+      if (agent.id) {
+        const existingAgent = await prisma.agent.findUnique({
+          where: { id: agent.id }
+        });
+        if (!existingAgent) {
+          console.warn(`⚠️ [API Execute] Agent ID ${agent.id} not found in database, setting to null`);
+          validAgentId = null;
+        }
+      }
+
       await prisma.agentExecution.create({
         data: {
           executionId: result.executionId,
-          agentId: agent.id,
+          agentId: validAgentId,
           userId: authenticatedUserId,
           organizationId: session.user.organizationId,
           status: result.success ? 'COMPLETED' : 'FAILED',

@@ -9,12 +9,14 @@ export const friendlyNodeTemplates: NodeTemplate[] = [
     description: 'Recebe arquivos PDF, Word ou Excel para análise',
     icon: 'FileText',
     defaultData: {
-      label: 'Receber Documento',
+      label: '📄 Receber Documento',
+      nodeType: 'input',
       inputSchema: {
         type: 'object',
         properties: {
-          file: { type: 'string', format: 'binary' }
-        }
+          file: { type: 'string', format: 'binary', title: 'Arquivo', description: 'Envie o documento para análise' }
+        },
+        required: ['file']
       }
     },
     requiredFields: ['inputSchema'],
@@ -26,12 +28,14 @@ export const friendlyNodeTemplates: NodeTemplate[] = [
     description: 'Recebe texto digitado pelo usuário',
     icon: 'MessageSquare',
     defaultData: {
-      label: 'Receber Texto',
+      label: '✍️ Receber Texto',
+      nodeType: 'input',
       inputSchema: {
         type: 'object',
         properties: {
-          text: { type: 'string' }
-        }
+          text: { type: 'string', title: 'Texto', description: 'Digite ou cole o texto aqui', widget: 'textarea' }
+        },
+        required: ['text']
       }
     },
     requiredFields: ['inputSchema'],
@@ -45,7 +49,8 @@ export const friendlyNodeTemplates: NodeTemplate[] = [
     description: 'Analisa contratos trabalhistas e valida CLT',
     icon: 'FileCheck',
     defaultData: {
-      label: 'Analisar Contrato',
+      label: '📋 Analisar Contrato',
+      nodeType: 'ai',
       prompt: 'Analise este contrato trabalhista e extraia: nome, cargo, salário, data de admissão, e verifique conformidade com CLT.',
       provider: 'openai',
       model: 'gpt-4o-mini',
@@ -60,7 +65,8 @@ export const friendlyNodeTemplates: NodeTemplate[] = [
     description: 'Avalia currículos e pontua candidatos',
     icon: 'UserCheck',
     defaultData: {
-      label: 'Analisar Currículo',
+      label: '👤 Analisar Currículo',
+      nodeType: 'ai',
       prompt: 'Analise este currículo e pontue de 0-100 baseado em: experiência, formação, habilidades técnicas.',
       provider: 'openai',
       model: 'gpt-4o-mini'
@@ -76,7 +82,8 @@ export const friendlyNodeTemplates: NodeTemplate[] = [
     description: 'Verifica conformidade com legislação trabalhista',
     icon: 'Scale',
     defaultData: {
-      label: 'Validar CLT',
+      label: '⚖️ Validar CLT',
+      nodeType: 'logic',
       logicType: 'validate',
       validation: 'validateCLTCompliance(data)'
     },
@@ -89,7 +96,8 @@ export const friendlyNodeTemplates: NodeTemplate[] = [
     description: 'Escolhe próximo passo baseado em condições',
     icon: 'GitBranch',
     defaultData: {
-      label: 'Decidir Caminho',
+      label: '🔀 Decidir Caminho',
+      nodeType: 'logic',
       logicType: 'condition',
       condition: 'data.score > 70'
     },
@@ -104,7 +112,8 @@ export const friendlyNodeTemplates: NodeTemplate[] = [
     description: 'Envia email com relatório ou notificação',
     icon: 'Send',
     defaultData: {
-      label: 'Enviar Email',
+      label: '📧 Enviar Email',
+      nodeType: 'api',
       apiEndpoint: '/api/send-email',
       apiMethod: 'POST',
       apiHeaders: { 'Content-Type': 'application/json' }
@@ -118,11 +127,13 @@ export const friendlyNodeTemplates: NodeTemplate[] = [
     description: 'Cria relatório em PDF profissional',
     icon: 'FileOutput',
     defaultData: {
-      label: 'Gerar PDF',
+      label: '📄 Gerar PDF',
+      nodeType: 'output',
       outputSchema: {
         type: 'object',
         properties: {
-          pdf: { type: 'string', format: 'binary' }
+          report: { type: 'string', title: 'Relatório', description: 'Relatório gerado em formato PDF' },
+          metadata: { type: 'object', title: 'Metadados', description: 'Informações sobre o documento' }
         }
       }
     },

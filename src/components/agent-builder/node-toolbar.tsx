@@ -11,6 +11,7 @@ import {
   Save,
   X,
   Info,
+  Sparkles,
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { Node } from "reactflow";
@@ -26,6 +27,34 @@ function safeJsonParse<T = any>(str: string | null | undefined, fallback: T): T 
     console.warn('JSON parse error:', error)
     return fallback
   }
+}
+
+// Helper function to improve prompts
+function improvePrompt(prompt: string): string {
+  if (!prompt || prompt.length < 10) {
+    return 'Analise o documento e extraia as informações principais de forma estruturada.';
+  }
+  
+  const improvements = [];
+  
+  // Adicionar contexto se não tiver
+  if (!prompt.toLowerCase().includes('analise') && !prompt.toLowerCase().includes('extraia')) {
+    improvements.push('Analise cuidadosamente e');
+  }
+  
+  // Adicionar estrutura se não tiver
+  if (!prompt.includes(':') && !prompt.includes('-')) {
+    improvements.push('extraia de forma estruturada:');
+  }
+  
+  // Adicionar formato de saída
+  if (!prompt.toLowerCase().includes('formato') && !prompt.toLowerCase().includes('json')) {
+    improvements.push('Forneça o resultado em formato claro e organizado.');
+  }
+  
+  return improvements.length > 0 
+    ? `${improvements.join(' ')} ${prompt}` 
+    : prompt;
 }
 
 interface NodeToolbarProps {
@@ -229,16 +258,31 @@ export function NodeToolbar({ node, onUpdate, onDelete }: NodeToolbarProps) {
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <label className="block text-sm font-medium text-gray-300">
-                      Prompt
+                      Instruções para IA
                     </label>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <Info className="h-4 w-4 text-gray-400" />
-                      </TooltipTrigger>
-                      <TooltipContent className="bg-gray-800 text-white border-gray-600">
-                        <p>Prompts específicos geram melhores resultados.</p>
-                      </TooltipContent>
-                    </Tooltip>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          const improved = improvePrompt(localData.prompt || '');
+                          handleInputChange('prompt', improved);
+                        }}
+                        className="h-7 px-2 text-xs bg-purple-600 hover:bg-purple-700 border-purple-500 text-white"
+                      >
+                        <Sparkles className="h-3 w-3 mr-1" />
+                        Melhorar
+                      </Button>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Info className="h-4 w-4 text-gray-400" />
+                        </TooltipTrigger>
+                        <TooltipContent className="bg-gray-800 text-white border-gray-600">
+                          <p>Instruções específicas geram melhores resultados.</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                   </div>
                   <textarea
                     value={localData.prompt || ""}

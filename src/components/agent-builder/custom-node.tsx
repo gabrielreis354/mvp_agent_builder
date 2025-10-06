@@ -90,7 +90,7 @@ export function CustomNode({ data, selected }: CustomNodeProps) {
       <div className="p-3">
         {data.nodeType === 'ai' && data.prompt && (
           <div className="text-xs text-gray-300 leading-relaxed">
-            <div className="font-medium text-gray-200 mb-1">Prompt:</div>
+            <div className="font-medium text-gray-200 mb-1">Instruções:</div>
             <div className="bg-gray-900 p-2 rounded text-xs font-mono">
               {data.prompt.length > 60 
                 ? `${data.prompt.substring(0, 60)}...` 
