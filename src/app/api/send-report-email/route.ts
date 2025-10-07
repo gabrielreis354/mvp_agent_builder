@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
         </head>
         <body>
           <div class="header">
-            <h1>🤖 AutomateAI</h1>
+            <h1>🤖 SimplifiqueIA RH</h1>
             <p>Relatório de ${agentName}</p>
           </div>
           
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
           </div>
 
           <div class="footer">
-            <p>Este é um email automático gerado pelo AutomateAI</p>
+            <p>Este é um email automático gerado pelo SimplifiqueIA RH</p>
             <p>Não responda a este email</p>
           </div>
         </body>
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
     } else {
       contentType = 'text/plain'
       emailContent = `
-        AutomateAI - Relatório de ${agentName}
+        SimplifiqueIA RH - Relatório de ${agentName}
         
         Olá! Seu agente ${agentName} concluiu o processamento.
         
@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
         Status: Processamento concluído com sucesso
         
         ---
-        Este é um email automático gerado pelo AutomateAI
+        Este é um email automático gerado pelo SimplifiqueIA RH
         Não responda a este email
       `
     }
