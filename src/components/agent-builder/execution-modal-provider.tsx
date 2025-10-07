@@ -16,7 +16,8 @@ export function ExecutionModalProvider() {
       onClose={closeModal}
       agent={agentToExecute}
       onExecutionComplete={() => {
-        closeModal();
+        // ✅ CORREÇÃO: NÃO fechar modal - deixar usuário ver resultado
+        // closeModal(); // ← Removido - modal tem botão "Fechar" próprio
       }}
     />
   );

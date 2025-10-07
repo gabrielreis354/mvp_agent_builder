@@ -141,8 +141,9 @@ export function SavedAgentsList() {
     
     console.log('📊 handleExecutionComplete - FULL result object:', JSON.stringify(result, null, 2).substring(0, 1000))
     
-    // Fechar modal de execução primeiro
-    setShowExecutionModal(false)
+    // ✅ CORREÇÃO: NÃO fechar modal aqui - deixar o modal interno controlar
+    // O AgentExecutionModalV2 agora mostra o resultado e tem botão "Fechar"
+    // setShowExecutionModal(false) // ← Removido para permitir visualização do resultado
     
     // 🎯 CORREÇÃO CRÍTICA: Melhorar estruturação dos dados para o GenericResultsModal
     const formattedResult = {

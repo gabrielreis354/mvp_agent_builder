@@ -46,6 +46,7 @@ export function AgentExecutionForm({
     "pdf"
   );
   const [recipientEmail, setRecipientEmail] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Função para formatar label de forma amigável
   const formatLabel = (key: string): string => {
@@ -105,6 +106,30 @@ export function AgentExecutionForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // ✅ Validar campos obrigatórios
+    const newErrors: Record<string, string> = {};
+    
+    formSchema.forEach((field) => {
+      if (field.required) {
+        const value = formData[field.name];
+        if (!value || (typeof value === 'string' && value.trim() === '')) {
+          newErrors[field.name] = `${field.title || formatLabel(field.name)} é obrigatório`;
+        }
+      }
+    });
+    
+    // Validar email se método de entrega for email
+    if (deliveryMethod === 'email' && !recipientEmail.trim()) {
+      newErrors['email'] = 'Email é obrigatório para envio';
+    }
+    
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+    
+    setErrors({});
     onSubmit({
       ...formData,
       department,
@@ -133,6 +158,7 @@ export function AgentExecutionForm({
           <div key={field.name} className="grid w-full items-center gap-2">
             <Label htmlFor={field.name} className="text-gray-300">
               {field.title || formatLabel(field.name)}
+              {field.required && <span className="text-red-400 ml-1">*</span>}
               {field.description && (
                 <p className="text-xs text-gray-500 font-light mt-1">
                   {field.description}
@@ -231,22 +257,52 @@ export function AgentExecutionForm({
                 </Label>
               </div>
             ) : field.type === "string" && field.widget === "textarea" ? (
-              <Textarea
-                id={field.name}
-                value={formData[field.name] || ""}
-                onChange={(e) => handleInputChange(field.name, e.target.value)}
-                className="bg-gray-800 border-gray-600 text-white"
-                placeholder={field.description || ""}
-              />
+              <>
+                <Textarea
+                  id={field.name}
+                  value={formData[field.name] || ""}
+                  onChange={(e) => {
+                    handleInputChange(field.name, e.target.value);
+                    if (errors[field.name]) {
+                      setErrors(prev => ({ ...prev, [field.name]: '' }));
+                    }
+                  }}
+                  className={`bg-gray-800 border-gray-600 text-white ${
+                    errors[field.name] ? 'border-red-500' : ''
+                  }`}
+                  placeholder={field.description || ""}
+                  required={field.required}
+                />
+                {errors[field.name] && (
+                  <p className="text-xs text-red-400 mt-1">
+                    {errors[field.name]}
+                  </p>
+                )}
+              </>
             ) : (
-              <Input
-                id={field.name}
-                type={field.type === "number" ? "number" : "text"}
-                value={formData[field.name] || ""}
-                onChange={(e) => handleInputChange(field.name, e.target.value)}
-                className="bg-gray-800 border-gray-600 text-white"
-                placeholder={field.description || ""}
-              />
+              <>
+                <Input
+                  id={field.name}
+                  type={field.type === "number" ? "number" : "text"}
+                  value={formData[field.name] || ""}
+                  onChange={(e) => {
+                    handleInputChange(field.name, e.target.value);
+                    if (errors[field.name]) {
+                      setErrors(prev => ({ ...prev, [field.name]: '' }));
+                    }
+                  }}
+                  className={`bg-gray-800 border-gray-600 text-white ${
+                    errors[field.name] ? 'border-red-500' : ''
+                  }`}
+                  placeholder={field.description || ""}
+                  required={field.required}
+                />
+                {errors[field.name] && (
+                  <p className="text-xs text-red-400 mt-1">
+                    {errors[field.name]}
+                  </p>
+                )}
+              </>
             )}
           </div>
         );
@@ -305,16 +361,29 @@ export function AgentExecutionForm({
         <div>
           <Label htmlFor="email-builder" className="text-gray-300">
             Email para Envio
+            <span className="text-red-400 ml-1">*</span>
           </Label>
           <Input
             id="email-builder"
             type="email"
             placeholder="exemplo@email.com"
             value={recipientEmail}
-            onChange={(e) => setRecipientEmail(e.target.value)}
-            className="bg-gray-800 border-gray-600 text-white"
+            onChange={(e) => {
+              setRecipientEmail(e.target.value);
+              if (errors['email']) {
+                setErrors(prev => ({ ...prev, email: '' }));
+              }
+            }}
+            className={`bg-gray-800 border-gray-600 text-white ${
+              errors['email'] ? 'border-red-500' : ''
+            }`}
             required
           />
+          {errors['email'] && (
+            <p className="text-xs text-red-400 mt-1">
+              {errors['email']}
+            </p>
+          )}
         </div>
       )}
 

@@ -1,4 +1,5 @@
 import { BaseConnector, ConnectorConfig, ConnectorResult } from './base'
+import { getEmailService } from '@/lib/email/email-service'
 
 export interface EmailConfig extends ConnectorConfig {
   provider: 'smtp' | 'sendgrid' | 'resend'
@@ -44,23 +45,45 @@ export class EmailConnector extends BaseConnector {
 
   async execute(config: EmailConfig, input: EmailInput): Promise<ConnectorResult> {
     try {
-      console.log(`Sending email via ${config.provider}`)
-      console.log(`To: ${Array.isArray(input.to) ? input.to.join(', ') : input.to}`)
-      console.log(`Subject: ${input.subject}`)
+      console.log(`📧 [EmailConnector] Sending email via ${config.provider}`)
+      console.log(`📧 [EmailConnector] To: ${Array.isArray(input.to) ? input.to.join(', ') : input.to}`)
+      console.log(`📧 [EmailConnector] Subject: ${input.subject}`)
       
-      // Simular envio de email
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // ✅ USAR EmailService REAL (não mais simulação)
+      const emailService = getEmailService()
       
-      const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      // Converter destinatários para string se for array
+      const recipients = Array.isArray(input.to) ? input.to[0] : input.to
+      
+      // Enviar email real
+      const result = await emailService.sendEmail({
+        to: recipients,
+        subject: input.subject,
+        text: input.body,
+        html: input.html || input.body,
+        attachments: input.attachments?.map(att => ({
+          filename: att.filename,
+          content: Buffer.isBuffer(att.content) ? att.content : Buffer.from(att.content),
+          contentType: att.contentType || 'application/octet-stream'
+        }))
+      })
+      
+      if (!result.success) {
+        console.error(`❌ [EmailConnector] Failed to send email: ${result.error}`)
+        return this.createResult(false, null, result.error || 'Email send failed')
+      }
+      
+      console.log(`✅ [EmailConnector] Email sent successfully! MessageId: ${result.messageId}`)
       
       return this.createResult(true, {
-        messageId,
+        messageId: result.messageId,
         status: 'sent',
         recipients: Array.isArray(input.to) ? input.to : [input.to],
         provider: config.provider
       })
       
     } catch (error) {
+      console.error(`❌ [EmailConnector] Error:`, error)
       return this.createResult(false, null, error instanceof Error ? error.message : 'Email send failed')
     }
   }

@@ -184,39 +184,53 @@ async function handlePOST(request: NextRequest): Promise<NextResponse> {
     // 6. 💾 SALVAR EXECUÇÃO NO BANCO DE DADOS
     try {
       // Validar se agente existe no banco antes de salvar execução
-      let validAgentId = agent.id;
+      let validAgentId: string | null = null;
+      
       if (agent.id) {
         const existingAgent = await prisma.agent.findUnique({
           where: { id: agent.id }
         });
-        if (!existingAgent) {
-          console.warn(`⚠️ [API Execute] Agent ID ${agent.id} not found in database, setting to null`);
-          validAgentId = null;
+        
+        if (existingAgent) {
+          validAgentId = agent.id;
+        } else {
+          console.warn(`⚠️ [API Execute] Agent ID ${agent.id} not found in database, skipping database save`);
         }
       }
 
-      await prisma.agentExecution.create({
-        data: {
-          executionId: result.executionId,
-          agentId: validAgentId,
-          userId: authenticatedUserId,
-          organizationId: session.user.organizationId,
-          status: result.success ? 'COMPLETED' : 'FAILED',
-          inputData: input as any,
-          outputData: result.output as any,
-          errorMessage: result.error || null,
-          executionTime: result.executionTime,
-          tokensUsed: 0, // TODO: Calcular tokens reais
-          cost: 0.0, // TODO: Calcular custo real
-          completedAt: new Date(),
-          metadata: {
-            nodeResults: result.nodeResults,
-          } as any,
-          logs: [],
-        },
-      });
-      
-      console.log(`💾 [API Execute] Execution saved to database: ${result.executionId}`);
+      // Só salvar no banco se o agente existir
+      if (validAgentId) {
+        await prisma.agentExecution.create({
+          data: {
+            executionId: result.executionId,
+            agent: {
+              connect: { id: validAgentId }
+            },
+            user: {
+              connect: { id: authenticatedUserId }
+            },
+            organization: {
+              connect: { id: session.user.organizationId }
+            },
+            status: result.success ? 'COMPLETED' : 'FAILED',
+            inputData: input as any,
+            outputData: result.output as any,
+            errorMessage: result.error || null,
+            executionTime: result.executionTime,
+            tokensUsed: 0, // TODO: Calcular tokens reais
+            cost: 0.0, // TODO: Calcular custo real
+            completedAt: new Date(),
+            metadata: {
+              nodeResults: result.nodeResults,
+            } as any,
+            logs: [],
+          },
+        });
+        
+        console.log(`💾 [API Execute] Execution saved to database: ${result.executionId}`);
+      } else {
+        console.log(`⚠️ [API Execute] Skipping database save - agent not found in database`);
+      }
     } catch (dbError) {
       console.error('❌ [API Execute] Failed to save execution to database:', dbError);
       // Não falhar a requisição se o salvamento falhar

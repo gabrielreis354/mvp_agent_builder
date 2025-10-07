@@ -361,7 +361,8 @@ export function AgentBuilder({
         agent={agent as Agent}
         onExecutionComplete={(result) => {
           setExecutionResult(result);
-          setShowExecutionPanel(false);
+          // ✅ CORREÇÃO: NÃO fechar modal - deixar usuário ver resultado e clicar em "Fechar"
+          // setShowExecutionPanel(false); // ← Removido
           if (onExecute) onExecute(result);
         }}
       />

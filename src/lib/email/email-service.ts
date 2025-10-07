@@ -47,22 +47,25 @@ export class EmailService {
   
   async sendEmail(options: EmailOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
     try {
-      // Se não há configuração, simular envio
+      // ❌ REMOVIDO: Simulação de email
+      // Agora EXIGE configuração SMTP para funcionar
       if (!this.transporter || !this.config) {
-        console.log(`[EMAIL SIMULADO] Para: ${options.to}`)
-        console.log(`[EMAIL SIMULADO] Assunto: ${options.subject}`)
-        console.log(`[EMAIL SIMULADO] Anexos: ${options.attachments?.length || 0}`)
+        const errorMsg = 'Configuração SMTP não encontrada. Configure as variáveis de ambiente SMTP_HOST, SMTP_PORT, SMTP_USER e SMTP_PASS no arquivo .env.local';
+        console.error('❌ [EMAIL SERVICE]', errorMsg);
         
         return {
-          success: true,
-          messageId: `simulated-${Date.now()}`,
-          error: 'Email simulado - configure SMTP para envio real'
+          success: false,
+          error: errorMsg
         }
       }
       
-      // Envio real
+      // ✅ Envio real de email
+      console.log(`📧 [EMAIL SERVICE] Enviando email para: ${options.to}`);
+      console.log(`📧 [EMAIL SERVICE] Assunto: ${options.subject}`);
+      console.log(`📧 [EMAIL SERVICE] Anexos: ${options.attachments?.length || 0}`);
+      
       const info = await this.transporter.sendMail({
-        from: this.config.auth.user,
+        from: `${process.env.EMAIL_FROM_NAME || 'SimplifiqueIA'} <${this.config.auth.user}>`,
         to: options.to,
         subject: options.subject,
         text: options.text,
@@ -70,16 +73,18 @@ export class EmailService {
         attachments: options.attachments
       })
       
+      console.log(`✅ [EMAIL SERVICE] Email enviado com sucesso! MessageId: ${info.messageId}`);
+      
       return {
         success: true,
         messageId: info.messageId
       }
       
     } catch (error) {
-      console.error('Erro ao enviar email:', error)
+      console.error('❌ [EMAIL SERVICE] Erro ao enviar email:', error)
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Erro desconhecido'
+        error: error instanceof Error ? error.message : 'Erro desconhecido ao enviar email'
       }
     }
   }
