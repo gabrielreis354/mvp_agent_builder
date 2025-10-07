@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" fill="none">
+  <!-- Background with rounded corners for iOS -->
+  <rect width="180" height="180" rx="40" fill="url(#gradient1)"/>
+  
+  <!-- Gradients -->
+  <defs>
+    <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Simplified Brain Icon (scaled up) -->
+  <g transform="translate(45, 45) scale(2.5)">
+    <!-- Left hemisphere -->
+    <path d="M 8 4 Q 4 4 4 8 Q 4 12 6 14 Q 4 16 4 20 Q 4 24 8 24 Q 10 24 12 22" 
+          stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    
+    <!-- Right hemisphere -->
+    <path d="M 24 4 Q 28 4 28 8 Q 28 12 26 14 Q 28 16 28 20 Q 28 24 24 24 Q 22 24 20 22" 
+          stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    
+    <!-- Connection -->
+    <path d="M 12 22 Q 16 20 20 22" 
+          stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    
+    <!-- Neural connections -->
+    <circle cx="8" cy="10" r="1.5" fill="white"/>
+    <circle cx="24" cy="10" r="1.5" fill="white"/>
+    <circle cx="16" cy="16" r="1.5" fill="white"/>
+  </g>
+</svg>

@@ -227,74 +227,6 @@ IMPORTANTE: Substitua TODOS os campos entre colchetes [CAMPO] pelos dados reais 
     preview: 'Input (PDF) → AI (Análise) → Logic (Validação CLT) → AI (Relatório) + API (Email) → Output (PDF + Notificação)'
   },
   {
-    id: 'customer-support',
-    name: 'Suporte RH Automático',
-    description: 'Classifica dúvidas de funcionários sobre benefícios, férias e folha de pagamento, gera respostas automáticas e roteia para especialistas.',
-    category: 'RH & Jurídico',
-    useCase: 'Automatizar atendimento de dúvidas internas de RH',
-    difficulty: 'beginner',
-    estimatedTime: '3-5 min',
-    nodes: [
-      {
-        id: 'input-1',
-        type: 'customNode',
-        position: { x: 100, y: 100 },
-        data: { 
-          label: 'Dúvida Funcionário',
-          nodeType: 'input',
-          inputSchema: {
-            type: 'object',
-            properties: {
-              funcionario: { type: 'string', description: 'Nome do funcionário' },
-              departamento: { type: 'string', description: 'Departamento do funcionário' },
-              duvida: { type: 'string', description: 'Descrição da dúvida' },
-              canal: { type: 'string', enum: ['email', 'chat', 'telefone'], description: 'Canal de atendimento' }
-            },
-            required: ['funcionario', 'duvida']
-          }
-        }
-      },
-      {
-        id: 'ai-1',
-        type: 'customNode',
-        position: { x: 300, y: 100 },
-        data: {
-          label: 'Classificação RH',
-          nodeType: 'ai',
-          provider: 'openai',
-          model: 'gpt-4',
-          prompt: 'Classifique esta dúvida de RH por: categoria (benefícios/férias/folha-pagamento/documentos/políticas), urgência (baixa/média/alta), complexidade (simples/intermediária/complexa), se pode ser respondida automaticamente ou precisa de especialista.'
-        }
-      },
-      {
-        id: 'logic-1',
-        type: 'customNode',
-        position: { x: 500, y: 100 },
-        data: { label: 'Roteamento Especialista', nodeType: 'logic' }
-      },
-      {
-        id: 'api-1',
-        type: 'customNode',
-        position: { x: 700, y: 50 },
-        data: { label: 'Sistema HRIS', nodeType: 'api' }
-      },
-      {
-        id: 'api-2',
-        type: 'customNode',
-        position: { x: 700, y: 150 },
-        data: { label: 'Base Conhecimento', nodeType: 'api' }
-      }
-    ],
-    edges: [
-      { id: 'e1-2', source: 'input-1', target: 'ai-1' },
-      { id: 'e2-3', source: 'ai-1', target: 'logic-1' },
-      { id: 'e3-4', source: 'logic-1', target: 'api-1' },
-      { id: 'e3-5', source: 'logic-1', target: 'api-2' }
-    ],
-    tags: ['suporte-rh', 'beneficios', 'ferias', 'folha-pagamento', 'gpt-4', 'rh'],
-    preview: 'Input (Dúvida) → AI (Classificação RH) → Logic (Roteamento) → API (HRIS + Base Conhecimento)'
-  },
-  {
     id: 'expense-analyzer',
     name: 'Analisador de Despesas RH',
     description: 'Processa despesas de RH como vale-transporte, vale-refeição e reembolsos médicos, valida políticas e gera relatórios gerenciais.',
@@ -463,12 +395,12 @@ IMPORTANTE: Substitua TODOS os campos entre colchetes [CAMPO] pelos dados reais 
   },
   {
     id: 'social-media-manager',
-    name: 'Comunicação Interna RH',
-    description: 'Cria comunicados internos, campanhas de engajamento e posts sobre vagas, garantindo conformidade com políticas corporativas.',
+    name: 'Gerador de Comunicação Interna RH',
+    description: 'Gera conteúdo profissional para comunicados internos, campanhas de engajamento e divulgação de vagas com conformidade corporativa. Você copia e publica nos seus canais.',
     category: 'RH & Jurídico',
-    useCase: 'Automatizar comunicação interna e divulgação de vagas',
+    useCase: 'Criar conteúdo profissional para comunicação interna',
     difficulty: 'beginner',
-    estimatedTime: '4-8 min',
+    estimatedTime: '3-5 min',
     nodes: [
       {
         id: 'input-1',
@@ -483,7 +415,7 @@ IMPORTANTE: Substitua TODOS os campos entre colchetes [CAMPO] pelos dados reais 
               tipo_comunicacao: { type: 'string', enum: ['comunicado-interno', 'campanha-engajamento', 'divulgacao-vaga', 'evento-rh'], description: 'Tipo de comunicação' },
               conteudo: { type: 'string', description: 'Conteúdo base da comunicação' },
               publico_alvo: { type: 'string', enum: ['todos-funcionarios', 'gestores', 'departamento-especifico'], description: 'Público-alvo' },
-              canais: { type: 'array', items: { type: 'string', enum: ['slack', 'teams', 'intranet', 'email'] }, description: 'Canais de comunicação' }
+              tom: { type: 'string', enum: ['formal', 'informal', 'motivacional'], description: 'Tom da comunicação', default: 'formal' }
             },
             required: ['tipo_comunicacao', 'conteudo', 'publico_alvo']
           }
@@ -494,39 +426,27 @@ IMPORTANTE: Substitua TODOS os campos entre colchetes [CAMPO] pelos dados reais 
         type: 'customNode',
         position: { x: 300, y: 100 },
         data: {
-          label: 'Geração Conteúdo RH',
+          label: 'Geração Conteúdo',
           nodeType: 'ai',
           provider: 'anthropic',
           model: 'claude-3-haiku',
-          prompt: 'Crie conteúdo para comunicação interna de RH baseado no briefing. Garanta tom profissional, linguagem inclusiva, conformidade com políticas corporativas. Para vagas, inclua requisitos claros e processo seletivo. Para comunicados, seja claro e objetivo.'
+          prompt: 'Crie conteúdo profissional para comunicação interna de RH baseado no briefing. Garanta tom adequado, linguagem inclusiva, conformidade com políticas corporativas. Para vagas, inclua requisitos claros e processo seletivo. Para comunicados, seja claro e objetivo. Gere o conteúdo em formato HTML profissional pronto para copiar e usar.'
         }
-      },
-      {
-        id: 'logic-1',
-        type: 'customNode',
-        position: { x: 500, y: 100 },
-        data: { label: 'Validação Compliance', nodeType: 'logic' }
-      },
-      {
-        id: 'api-1',
-        type: 'customNode',
-        position: { x: 700, y: 100 },
-        data: { label: 'Canais Internos', nodeType: 'api' }
       },
       {
         id: 'output-1',
         type: 'customNode',
-        position: { x: 900, y: 100 },
+        position: { x: 500, y: 100 },
         data: { 
-          label: 'Comunicação Publicada',
+          label: 'Conteúdo Pronto',
           nodeType: 'output',
           outputSchema: {
             type: 'object',
             properties: {
-              conteudo_aprovado: { type: 'string', description: 'Conteúdo final aprovado' },
-              canais_publicados: { type: 'array', description: 'Lista de canais onde foi publicado' },
-              alcance_estimado: { type: 'number', description: 'Número estimado de funcionários alcançados' },
-              status_compliance: { type: 'boolean', description: 'Aprovação de compliance' }
+              conteudo_html: { type: 'string', description: 'Conteúdo em HTML profissional' },
+              conteudo_texto: { type: 'string', description: 'Conteúdo em texto simples' },
+              sugestoes_canais: { type: 'array', description: 'Canais recomendados para publicação' },
+              checklist_publicacao: { type: 'array', description: 'Checklist antes de publicar' }
             }
           }
         }
@@ -534,38 +454,35 @@ IMPORTANTE: Substitua TODOS os campos entre colchetes [CAMPO] pelos dados reais 
     ],
     edges: [
       { id: 'e1-2', source: 'input-1', target: 'ai-1' },
-      { id: 'e2-3', source: 'ai-1', target: 'logic-1' },
-      { id: 'e3-4', source: 'logic-1', target: 'api-1' },
-      { id: 'e4-5', source: 'api-1', target: 'output-1' }
+      { id: 'e2-3', source: 'ai-1', target: 'output-1' }
     ],
-    tags: ['comunicacao-interna', 'vagas', 'comunicados', 'compliance', 'claude', 'rh'],
-    preview: 'Input (Briefing) → AI (Conteúdo RH) → Logic (Compliance) → API (Canais) → Output (Publicado)'
+    tags: ['comunicacao-interna', 'vagas', 'comunicados', 'conteudo', 'claude', 'rh'],
+    preview: 'Input (Briefing) → AI (Gera Conteúdo) → Output (HTML + Texto Pronto)'
   },
   {
     id: 'task-organizer',
-    name: 'Gestor de Processos RH',
-    description: 'Prioriza e organiza processos de RH (admissão, demissão, avaliações), considera prazos legais e distribui tarefas para equipe.',
+    name: 'Priorizador de Processos RH',
+    description: 'Analisa e prioriza processos de RH (admissão, demissão, avaliações) considerando prazos legais CLT e gera cronograma inteligente. Você usa o cronograma para distribuir tarefas.',
     category: 'RH & Jurídico',
-    useCase: 'Otimizar gestão de processos e prazos de RH',
+    useCase: 'Priorizar processos e gerar cronograma com prazos legais',
     difficulty: 'intermediate',
-    estimatedTime: '6-10 min',
+    estimatedTime: '5-8 min',
     nodes: [
       {
         id: 'input-1',
         type: 'customNode',
         position: { x: 100, y: 100 },
         data: { 
-          label: 'Processos RH',
+          label: 'Lista de Processos',
           nodeType: 'input',
           inputSchema: {
             type: 'object',
             properties: {
-              processos: { type: 'array', items: { type: 'object' }, description: 'Lista de processos de RH' },
-              tipo_processo: { type: 'string', enum: ['admissao', 'demissao', 'avaliacao', 'promocao', 'transferencia'], description: 'Tipo do processo' },
-              prazo_legal: { type: 'string', format: 'date', description: 'Prazo legal obrigatório' },
-              responsavel: { type: 'string', description: 'Responsável pelo processo' }
+              processos: { type: 'array', items: { type: 'object' }, description: 'Lista de processos de RH pendentes' },
+              mes_referencia: { type: 'string', description: 'Mês de referência para o cronograma' },
+              equipe_disponivel: { type: 'number', description: 'Número de pessoas na equipe de RH' }
             },
-            required: ['processos', 'tipo_processo']
+            required: ['processos']
           }
         }
       },
@@ -574,45 +491,27 @@ IMPORTANTE: Substitua TODOS os campos entre colchetes [CAMPO] pelos dados reais 
         type: 'customNode',
         position: { x: 300, y: 100 },
         data: {
-          label: 'Priorização RH',
+          label: 'Análise e Priorização',
           nodeType: 'ai',
           provider: 'openai',
           model: 'gpt-4',
-          prompt: 'Analise e priorize estes processos de RH considerando: prazos legais trabalhistas, urgência do processo, impacto no funcionário, recursos necessários, dependências entre processos. Considere CLT e legislação trabalhista brasileira.'
+          prompt: 'Analise estes processos de RH e crie um cronograma priorizado considerando: 1) Prazos legais CLT (admissão: 48h para registro, demissão: 10 dias para homologação, etc), 2) Urgência e impacto no funcionário, 3) Dependências entre processos, 4) Recursos necessários. Gere um cronograma em formato de tabela HTML com: processo, prioridade (alta/média/baixa), prazo legal, prazo sugerido, responsável sugerido, observações importantes.'
         }
-      },
-      {
-        id: 'logic-1',
-        type: 'customNode',
-        position: { x: 500, y: 100 },
-        data: { label: 'Distribuição Equipe RH', nodeType: 'logic' }
-      },
-      {
-        id: 'api-1',
-        type: 'customNode',
-        position: { x: 700, y: 50 },
-        data: { label: 'Sistema HRIS', nodeType: 'api' }
-      },
-      {
-        id: 'api-2',
-        type: 'customNode',
-        position: { x: 700, y: 150 },
-        data: { label: 'Workflow Aprovação', nodeType: 'api' }
       },
       {
         id: 'output-1',
         type: 'customNode',
-        position: { x: 900, y: 100 },
+        position: { x: 500, y: 100 },
         data: { 
-          label: 'Processos Organizados',
+          label: 'Cronograma Priorizado',
           nodeType: 'output',
           outputSchema: {
             type: 'object',
             properties: {
-              cronograma_processos: { type: 'array', description: 'Cronograma priorizado de processos' },
-              alertas_prazos: { type: 'array', description: 'Alertas de prazos legais' },
-              distribuicao_equipe: { type: 'object', description: 'Atribuição de responsabilidades' },
-              workflow_aprovacao: { type: 'array', description: 'Fluxo de aprovações necessárias' }
+              cronograma_html: { type: 'string', description: 'Cronograma em HTML profissional' },
+              processos_prioritarios: { type: 'array', description: 'Lista de processos com prioridade alta' },
+              alertas_prazos: { type: 'array', description: 'Alertas de prazos legais próximos' },
+              sugestoes_distribuicao: { type: 'object', description: 'Sugestões de distribuição por responsável' }
             }
           }
         }
@@ -620,14 +519,10 @@ IMPORTANTE: Substitua TODOS os campos entre colchetes [CAMPO] pelos dados reais 
     ],
     edges: [
       { id: 'e1-2', source: 'input-1', target: 'ai-1' },
-      { id: 'e2-3', source: 'ai-1', target: 'logic-1' },
-      { id: 'e3-4', source: 'logic-1', target: 'api-1' },
-      { id: 'e3-5', source: 'logic-1', target: 'api-2' },
-      { id: 'e4-6', source: 'api-1', target: 'output-1' },
-      { id: 'e5-6', source: 'api-2', target: 'output-1' }
+      { id: 'e2-3', source: 'ai-1', target: 'output-1' }
     ],
-    tags: ['processos-rh', 'admissao', 'demissao', 'avaliacao', 'prazos-legais', 'gpt-4', 'rh'],
-    preview: 'Input (Processos) → AI (Priorização RH) → Logic (Distribuição) → API (HRIS + Workflow) → Output (Organizados)'
+    tags: ['processos-rh', 'priorizacao', 'cronograma', 'prazos-legais', 'clt', 'gpt-4', 'rh'],
+    preview: 'Input (Lista Processos) → AI (Priorização CLT) → Output (Cronograma HTML)'
   },
   {
     id: 'recruitment-screening',

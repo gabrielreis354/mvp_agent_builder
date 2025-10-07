@@ -29,7 +29,7 @@ export function Header() {
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-2 text-lg font-bold text-white">
           <Brain className="h-6 w-6 text-blue-400" />
-          <span className="bg-gradient-to-r from-blue-400 to-purple-500 text-transparent bg-clip-text">AutomateAI</span>
+          <span className="bg-gradient-to-r from-blue-400 to-purple-500 text-transparent bg-clip-text">SimplifiqueIA</span>
         </Link>
         
         <DropdownMenu>

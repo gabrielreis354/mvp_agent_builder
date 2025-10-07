@@ -83,65 +83,82 @@ export function AgentsSection({ userId }: AgentsSectionProps) {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {agents.map((agent) => (
             <div
               key={agent.id}
-              className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-gray-700 hover:border-gray-600 transition-all"
+              className="group relative bg-gradient-to-br from-white/15 to-white/5 backdrop-blur-lg rounded-xl p-6 border border-white/20 hover:border-blue-400/50 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-1"
             >
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <h3 className="text-white font-semibold">{agent.name}</h3>
-                  <p className="text-gray-400 text-sm mt-1">
-                    {agent.description || 'Sem descrição'}
-                  </p>
-                </div>
-                <Brain className="w-5 h-5 text-blue-400" />
+              {/* Ícone do Agente */}
+              <div className="absolute -top-3 -right-3 w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                <Brain className="w-6 h-6 text-white" />
               </div>
 
-              <div className="flex items-center justify-between">
-                <Badge variant="secondary" className="text-xs">
+              {/* Conteúdo Principal */}
+              <div className="mb-4">
+                <h3 className="text-xl font-bold text-white mb-2 pr-8 line-clamp-1">
+                  {agent.name}
+                </h3>
+                <p className="text-gray-300 text-sm leading-relaxed line-clamp-2 min-h-[40px]">
+                  {agent.description || 'Sem descrição disponível'}
+                </p>
+              </div>
+
+              {/* Badge e Metadados */}
+              <div className="flex items-center gap-2 mb-4">
+                <Badge 
+                  variant="secondary" 
+                  className="bg-blue-500/20 text-blue-300 border-blue-400/30 text-xs font-medium px-2 py-1"
+                >
                   {agent.type || 'Custom'}
                 </Badge>
-                
-                <div className="flex gap-1">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="text-blue-400 hover:text-blue-300"
-                    onClick={async () => {
-                      try {
-                        const response = await fetch(`/api/agents/${agent.id}`);
-                        if (response.ok) {
-                          const data = await response.json();
-                          if (data.success && data.agent) {
-                            openModal(data.agent);
-                          } else {
-                            console.error('Failed to fetch full agent data:', data.error);
-                            alert('Erro ao carregar dados do agente.');
-                          }
+                {agent.nodes && (
+                  <span className="text-xs text-gray-400">
+                    {agent.nodes.length} nós
+                  </span>
+                )}
+              </div>
+
+              {/* Separador */}
+              <div className="h-px bg-gradient-to-r from-transparent via-white/20 to-transparent mb-4" />
+
+              {/* Botões de Ação */}
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-blue-500/50 transition-all duration-300"
+                  onClick={async () => {
+                    try {
+                      const response = await fetch(`/api/agents/${agent.id}`);
+                      if (response.ok) {
+                        const data = await response.json();
+                        if (data.success && data.agent) {
+                          openModal(data.agent);
                         } else {
-                          throw new Error('Failed to fetch agent data');
+                          console.error('Failed to fetch full agent data:', data.error);
+                          alert('Erro ao carregar dados do agente.');
                         }
-                      } catch (error) {
-                        console.error('Error executing agent:', error);
-                        alert('Ocorreu um erro ao tentar executar o agente.');
+                      } else {
+                        throw new Error('Failed to fetch agent data');
                       }
-                    }}
-                    title="Executar agente"
-                  >
-                    <Play className="h-3 w-3" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="text-gray-400 hover:text-gray-300"
-                    onClick={() => window.location.href = `/builder?load=${agent.id}`}
-                    title="Editar agente"
-                  >
-                    <Edit className="h-3 w-3" />
-                  </Button>
-                </div>
+                    } catch (error) {
+                      console.error('Error executing agent:', error);
+                      alert('Ocorreu um erro ao tentar executar o agente.');
+                    }
+                  }}
+                >
+                  <Play className="h-4 w-4 mr-2" />
+                  Executar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="bg-white/5 border-white/20 text-gray-300 hover:bg-white/10 hover:text-white hover:border-white/40 transition-all duration-300"
+                  onClick={() => window.location.href = `/builder?load=${agent.id}`}
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Editar
+                </Button>
               </div>
             </div>
           ))}
