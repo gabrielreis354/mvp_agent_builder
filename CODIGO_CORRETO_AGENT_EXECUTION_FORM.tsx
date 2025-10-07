@@ -50,9 +50,9 @@ export function AgentExecutionForm({
   // Função para formatar label de forma amigável
   const formatLabel = (key: string): string => {
     return key
-      .split("_")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
   };
 
   useEffect(() => {
@@ -69,17 +69,14 @@ export function AgentExecutionForm({
       const initialData: AgentExecutionFormData = {};
       schema.forEach((field) => {
         // Detectar se é array de arquivos
-        const isFileArray =
-          field.type === "array" &&
-          field.items?.type === "string" &&
+        const isFileArray = field.type === "array" && 
+          field.items?.type === "string" && 
           field.items?.format === "binary";
-
+        
         initialData[field.name] =
-          field.type === "string" && field.format === "binary"
-            ? null
-            : isFileArray
-            ? []
-            : "";
+          field.type === "string" && field.format === "binary" ? null :
+          isFileArray ? [] :
+          "";
       });
       setFormData(initialData);
     } else {
@@ -115,20 +112,15 @@ export function AgentExecutionForm({
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-6 max-h-[60vh] overflow-y-auto pr-2"
-    >
+    <form onSubmit={handleSubmit} className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
       {formSchema.map((field) => {
         // Detectar se é array de arquivos
-        const isFileArray =
-          field.type === "array" &&
-          field.items?.type === "string" &&
+        const isFileArray = field.type === "array" && 
+          field.items?.type === "string" && 
           field.items?.format === "binary";
-
-        const isSingleFile =
-          field.type === "string" && field.format === "binary";
-
+        
+        const isSingleFile = field.type === "string" && field.format === "binary";
+        
         return (
           <div key={field.name} className="grid w-full items-center gap-2">
             <Label htmlFor={field.name} className="text-gray-300">
@@ -148,39 +140,27 @@ export function AgentExecutionForm({
                   <div className="flex flex-col items-center justify-center pt-5 pb-6">
                     <Upload className="w-8 h-8 mb-4 text-gray-500" />
                     <p className="mb-2 text-sm text-gray-500">
-                      <span className="font-semibold">
-                        Clique para enviar múltiplos arquivos
-                      </span>{" "}
-                      ou arraste e solte
+                      <span className="font-semibold">Clique para enviar múltiplos arquivos</span> ou
+                      arraste e solte
                     </p>
                     <p
                       className={`text-xs ${
-                        formData[field.name] &&
-                        Array.isArray(formData[field.name]) &&
-                        formData[field.name].length > 0
+                        formData[field.name] && Array.isArray(formData[field.name]) && formData[field.name].length > 0
                           ? "text-green-400"
                           : "text-gray-600"
                       }`}
                     >
-                      {formData[field.name] &&
-                      Array.isArray(formData[field.name]) &&
-                      formData[field.name].length > 0
-                        ? `${
-                            formData[field.name].length
-                          } arquivo(s) selecionado(s)`
+                      {formData[field.name] && Array.isArray(formData[field.name]) && formData[field.name].length > 0
+                        ? `${formData[field.name].length} arquivo(s) selecionado(s)`
                         : "Nenhum arquivo selecionado"}
                     </p>
-                    {formData[field.name] &&
-                      Array.isArray(formData[field.name]) &&
-                      formData[field.name].length > 0 && (
-                        <div className="mt-2 text-xs text-gray-400">
-                          {formData[field.name].map(
-                            (file: File, idx: number) => (
-                              <div key={idx}>• {file.name}</div>
-                            )
-                          )}
-                        </div>
-                      )}
+                    {formData[field.name] && Array.isArray(formData[field.name]) && formData[field.name].length > 0 && (
+                      <div className="mt-2 text-xs text-gray-400">
+                        {formData[field.name].map((file: File, idx: number) => (
+                          <div key={idx}>• {file.name}</div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <input
                     id={`file-upload-${field.name}`}
@@ -188,7 +168,10 @@ export function AgentExecutionForm({
                     multiple
                     className="hidden"
                     onChange={(e) =>
-                      handleMultipleFilesChange(field.name, e.target.files)
+                      handleMultipleFilesChange(
+                        field.name,
+                        e.target.files
+                      )
                     }
                   />
                 </Label>
@@ -202,14 +185,12 @@ export function AgentExecutionForm({
                   <div className="flex flex-col items-center justify-center pt-5 pb-6">
                     <Upload className="w-8 h-8 mb-4 text-gray-500" />
                     <p className="mb-2 text-sm text-gray-500">
-                      <span className="font-semibold">Clique para enviar</span>{" "}
-                      ou arraste e solte
+                      <span className="font-semibold">Clique para enviar</span> ou
+                      arraste e solte
                     </p>
                     <p
                       className={`text-xs ${
-                        formData[field.name]
-                          ? "text-green-400"
-                          : "text-gray-600"
+                        formData[field.name] ? "text-green-400" : "text-gray-600"
                       }`}
                     >
                       {formData[field.name]
