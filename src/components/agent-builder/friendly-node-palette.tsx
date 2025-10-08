@@ -14,6 +14,8 @@ import {
   Settings
 } from 'lucide-react'
 import { friendlyNodeTemplates, advancedNodeTemplates } from '@/lib/friendly-nodes'
+import { getNodeTooltip } from '@/lib/node-tooltips'
+import { CompactTooltip } from '@/components/ui/expanded-tooltip'
 
 const iconMap = {
   FileText,
@@ -83,6 +85,7 @@ export function FriendlyNodePalette() {
                 .filter(template => template.category === category)
                 .map((template) => {
                   const IconComponent = iconMap[template.icon as keyof typeof iconMap]
+                  const tooltip = getNodeTooltip(template.type, template.label)
                   
                   return (
                     <div
@@ -97,8 +100,13 @@ export function FriendlyNodePalette() {
                         </div>
                         
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium text-white group-hover:text-blue-300 transition-colors">
-                            {template.label}
+                          <div className="flex items-center justify-between">
+                            <div className="text-sm font-medium text-white group-hover:text-blue-300 transition-colors">
+                              {template.label}
+                            </div>
+                            {tooltip && (
+                              <CompactTooltip tooltip={tooltip} className="ml-2" />
+                            )}
                           </div>
                           <div className="text-xs text-gray-400 mt-1 leading-relaxed">
                             {template.description}

@@ -4,10 +4,23 @@ import bcrypt from 'bcryptjs';
 
 export async function POST(request: Request) {
   try {
-    const { name, email, password } = await request.json();
+    const { 
+      name, 
+      email, 
+      password,
+      // Optional HR fields
+      company,
+      jobTitle,
+      department,
+      companySize,
+      primaryUseCase,
+      phone,
+      linkedIn
+    } = await request.json();
 
+    // Only name, email, and password are required
     if (!name || !email || !password) {
-      return NextResponse.json({ error: 'Todos os campos são obrigatórios.' }, { status: 400 });
+      return NextResponse.json({ error: 'Nome, email e senha são obrigatórios.' }, { status: 400 });
     }
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -21,7 +34,7 @@ export async function POST(request: Request) {
     await prisma.$transaction(async (tx) => {
       const organization = await tx.organization.create({
         data: {
-          name: `${name}'s Organization`,
+          name: company || `${name}'s Organization`,
         },
       });
 
@@ -33,6 +46,14 @@ export async function POST(request: Request) {
           role: 'ADMIN',
           organizationId: organization.id,
           emailVerified: new Date(), // Considerar um fluxo de verificação de email no futuro
+          // Optional HR fields - only save if provided
+          ...(company && { company }),
+          ...(jobTitle && { jobTitle }),
+          ...(department && { department }),
+          ...(companySize && { companySize }),
+          ...(primaryUseCase && { primaryUseCase }),
+          ...(phone && { phone }),
+          ...(linkedIn && { linkedIn }),
         },
       });
     });

@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next dev -p 3001",
     "build": "prisma generate && next build",
-    "build:local": "dotenv -e .env.local -- cross-env NODE_ENV=development npm run build",
+    "build:local": "dotenv -e .env.local -- cross-env NODE_ENV=development SKIP_ENV_VALIDATION=true npm run build",
     "build:clean": "npm run clean && npm run build:local",
     "postbuild": "prisma migrate deploy",
     "start": "next start",

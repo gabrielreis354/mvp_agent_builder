@@ -35,7 +35,8 @@ model User {
   emailVerified DateTime?
   role          UserRole  @default(USER)
 
-  // HR-specific fields
+  // HR-specific fields (optional, can be filled later in profile)
+  company        String?
   jobTitle       String?
   department     String?
   companySize    String?

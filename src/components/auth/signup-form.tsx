@@ -79,6 +79,14 @@ export function SignUpForm() {
           name: formData.name,
           email: formData.email,
           password: formData.password,
+          // Optional HR fields - only send if filled
+          ...(formData.company && { company: formData.company }),
+          ...(formData.jobTitle && { jobTitle: formData.jobTitle }),
+          ...(formData.department && { department: formData.department }),
+          ...(formData.companySize && { companySize: formData.companySize }),
+          ...(formData.primaryUseCase && { primaryUseCase: formData.primaryUseCase }),
+          ...(formData.phone && { phone: formData.phone }),
+          ...(formData.linkedIn && { linkedIn: formData.linkedIn }),
         }),
       });
 
@@ -177,12 +185,12 @@ export function SignUpForm() {
           <div className="bg-gradient-to-r from-blue-600/80 to-indigo-600/80 backdrop-blur-sm p-6 text-white border-b border-white/20">
             <div className="text-center">
               <h2 className="text-xl font-semibold mb-2">
-                {step === 1 ? 'Criar Conta' : 'Dados Profissionais'}
+                {step === 1 ? 'Criar Conta' : 'Dados Profissionais (Opcional)'}
               </h2>
               <p className="text-blue-100 text-sm">
                 {step === 1 
                   ? 'Comece sua jornada de automação em RH'
-                  : 'Personalize sua experiência'
+                  : 'Preencha agora ou complete depois no seu perfil'
                 }
               </p>
             
@@ -292,7 +300,7 @@ export function SignUpForm() {
                     <div className="space-y-2">
                       <Label htmlFor="company" className="text-white font-medium flex items-center">
                         <Building2 className="w-4 h-4 mr-2" />
-                        Empresa *
+                        Empresa
                       </Label>
                       <Input
                         id="company"
@@ -302,14 +310,13 @@ export function SignUpForm() {
                         onChange={handleChange}
                         className="bg-white/10 border-white/30 text-white placeholder-gray-400 focus:border-blue-400 focus:ring-blue-400/50 backdrop-blur-sm"
                         placeholder="Nome da empresa"
-                        required
                       />
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="jobTitle" className="text-white font-medium flex items-center">
                         <Briefcase className="w-4 h-4 mr-2" />
-                        Cargo *
+                        Cargo
                       </Label>
                       <Input
                         id="jobTitle"
@@ -319,7 +326,6 @@ export function SignUpForm() {
                         onChange={handleChange}
                         className="bg-white/10 border-white/30 text-white placeholder-gray-400 focus:border-blue-400 focus:ring-blue-400/50 backdrop-blur-sm"
                         placeholder="Seu cargo atual"
-                        required
                       />
                     </div>
                   </div>
@@ -340,7 +346,7 @@ export function SignUpForm() {
                   <div className="space-y-2">
                     <Label htmlFor="companySize" className="text-white font-medium flex items-center">
                       <Users className="w-4 h-4 mr-2" />
-                      Tamanho da Empresa *
+                      Tamanho da Empresa
                     </Label>
                     <select
                       id="companySize"
@@ -348,7 +354,6 @@ export function SignUpForm() {
                       value={formData.companySize}
                       onChange={handleChange}
                       className="w-full px-3 py-2 border border-white/30 rounded-md focus:border-blue-400 focus:ring-blue-400/50 bg-white/10 text-white backdrop-blur-sm"
-                      required
                     >
                       <option value="" className="bg-gray-800 text-white">Selecione o tamanho</option>
                       {companyOptions.map(option => (
@@ -360,14 +365,13 @@ export function SignUpForm() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="primaryUseCase" className="text-white font-medium">Principal Caso de Uso *</Label>
+                    <Label htmlFor="primaryUseCase" className="text-white font-medium">Principal Caso de Uso</Label>
                     <select
                       id="primaryUseCase"
                       name="primaryUseCase"
                       value={formData.primaryUseCase}
                       onChange={handleChange}
                       className="w-full px-3 py-2 border border-white/30 rounded-md focus:border-blue-400 focus:ring-blue-400/50 bg-white/10 text-white backdrop-blur-sm"
-                      required
                     >
                       <option value="" className="bg-gray-800 text-white">Como pretende usar o SimplifiqueIA RH?</option>
                       {useCaseOptions.map(option => (
@@ -420,21 +424,34 @@ export function SignUpForm() {
                   </Button>
                 )}
                 
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className={`bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-medium shadow-lg hover:shadow-xl transition-all ${step === 1 ? 'ml-auto' : ''}`}
-                >
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {step === 1 ? (
-                    <>
-                      Continuar
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </>
-                  ) : (
-                    'Criar Conta'
+                <div className="flex gap-2 ml-auto">
+                  {step === 2 && (
+                    <Button
+                      type="submit"
+                      disabled={isLoading}
+                      variant="ghost"
+                      className="text-white hover:bg-white/10"
+                    >
+                      Pular e Criar Conta
+                    </Button>
                   )}
-                </Button>
+                  
+                  <Button
+                    type="submit"
+                    disabled={isLoading}
+                    className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-medium shadow-lg hover:shadow-xl transition-all"
+                  >
+                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {step === 1 ? (
+                      <>
+                        Continuar
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </>
+                    ) : (
+                      'Criar Conta'
+                    )}
+                  </Button>
+                </div>
               </div>
             </form>
 
