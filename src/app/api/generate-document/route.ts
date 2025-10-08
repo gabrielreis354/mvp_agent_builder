@@ -56,27 +56,31 @@ export async function POST(request: NextRequest) {
     // O conteúdo da análise é dinâmico - a IA pode gerar qualquer estrutura
     const analysisPayload = parsedContent?.analise_payload || parsedContent;
     
-    // Tentar extrair campos comuns, mas aceitar qualquer estrutura
+    // ✅ ENVIAR PAYLOAD COMPLETO para o microserviço processar
+    // Estrutura que o microserviço Python espera
     const transformedContent = {
-      // Tentar encontrar um resumo em campos comuns
-      summary: analysisPayload?.resumo_executivo || 
-               analysisPayload?.resumo || 
-               analysisPayload?.summary || 
-               JSON.stringify(analysisPayload, null, 2), // Fallback: JSON formatado
+      // Campos principais que o microserviço usa
+      summary: analysisPayload?.resumo_executivo || analysisPayload?.resumo || '',
+      key_points: analysisPayload?.pontos_principais || [],
+      recommendations: analysisPayload?.recomendacoes || [],
       
-      // Tentar encontrar pontos principais em campos comuns
-      key_points: analysisPayload?.pontos_principais || 
-                  analysisPayload?.key_points || 
-                  [],
+      // Dados adicionais estruturados
+      dados_principais: analysisPayload?.dados_principais || {},
+      pontuacao_geral: analysisPayload?.pontuacao_geral || {},
+      criterios_avaliacao: analysisPayload?.criterios_avaliacao || [],
+      pontos_atencao: analysisPayload?.pontos_atencao || [],
       
-      // Tentar encontrar recomendações em campos comuns
-      recommendations: analysisPayload?.recomendacoes || 
-                       analysisPayload?.recommendations || 
-                       [],
-      
-      // Incluir toda a análise para referência
+      // Incluir TUDO do payload original para o microserviço ter acesso completo
       full_analysis: analysisPayload
     };
+    
+    console.log(`📦 [API Generate] Transformed content:`, {
+      summary_length: transformedContent.summary?.length || 0,
+      key_points_count: transformedContent.key_points?.length || 0,
+      recommendations_count: transformedContent.recommendations?.length || 0,
+      has_dados_principais: !!transformedContent.dados_principais,
+      has_full_analysis: !!transformedContent.full_analysis
+    });
     
     formData.append('content', JSON.stringify(transformedContent));
     formData.append('output_format', format);

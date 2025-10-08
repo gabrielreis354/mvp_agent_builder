@@ -26,6 +26,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Convite inválido ou expirado.' }, { status: 404 });
     }
 
+    // ✅ SEGURANÇA: Verificar se convite já foi usado
+    if (invitation.usedAt) {
+      return NextResponse.json({ 
+        error: 'Este convite já foi utilizado.',
+        details: 'Por segurança, cada convite só pode ser usado uma vez. Solicite um novo convite ao administrador.'
+      }, { status: 410 });
+    }
+
     if (invitation.email.toLowerCase() !== session.user.email.toLowerCase()) {
       return NextResponse.json({ error: 'Este convite é para um email diferente.' }, { status: 403 });
     }
@@ -48,8 +56,13 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Você é o único administrador. Promova outro membro a administrador antes de sair.' }, { status: 403 });
       }
     }
+    // Obter IP do usuário para rastreamento de segurança
+    const forwarded = request.headers.get('x-forwarded-for');
+    const userIp = forwarded ? forwarded.split(',')[0] : request.headers.get('x-real-ip') || 'unknown';
+
     await prisma.$transaction(async (tx) => {
-      await tx.user.update({
+      // Atualizar usuário para nova organização
+      const updatedUser = await tx.user.update({
         where: { email: session.user.email! },
         data: {
           organizationId: invitation.organizationId,
@@ -57,17 +70,19 @@ export async function POST(request: Request) {
         },
       });
 
-      try {
-        await tx.invitation.delete({ where: { token } });
-      } catch (error: any) {
-        // Check if it's a Prisma error for a record not being found
-        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-          console.log(`Convite com token ${token} já havia sido deletado. Continuando...`);
-        } else {
-          // Re-throw other errors
-          throw error;
-        }
-      }
+      // ✅ SEGURANÇA: Marcar convite como usado (não deletar para auditoria)
+      await tx.invitation.update({
+        where: { token },
+        data: {
+          usedAt: new Date(),
+          usedByIp: userIp,
+          acceptedByUserId: updatedUser.id,
+        },
+      });
+
+      console.log(`✅ Usuário ${updatedUser.email} transferido para organização ${invitation.organizationId}`);
+      console.log(`🔒 Convite marcado como usado. IP: ${userIp}`);
+      console.log(`ℹ️ Agentes do usuário permanecem privados. Use a opção "Compartilhar com Organização" para torná-los públicos.`);
     });
 
     return NextResponse.json({ success: true, message: 'Você se juntou à organização com sucesso!' });

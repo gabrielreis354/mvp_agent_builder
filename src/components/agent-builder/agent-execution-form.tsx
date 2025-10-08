@@ -94,18 +94,37 @@ export function AgentExecutionForm({
   };
 
   const handleFileChange = (name: string, file: File | null) => {
-    setFormData((prev) => ({ ...prev, [name]: file }));
+    console.log(`📎 [Form] File changed: ${name}`, file);
+    setFormData((prev) => {
+      const newData = { ...prev, [name]: file };
+      console.log(`📋 [Form] Updated formData:`, newData);
+      return newData;
+    });
   };
 
   const handleMultipleFilesChange = (name: string, files: FileList | null) => {
     if (files) {
       const fileArray = Array.from(files);
-      setFormData((prev) => ({ ...prev, [name]: fileArray }));
+      console.log(`📎 [Form] Multiple files changed: ${name}`, fileArray);
+      setFormData((prev) => {
+        const newData = { ...prev, [name]: fileArray };
+        console.log(`📋 [Form] Updated formData:`, newData);
+        return newData;
+      });
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    console.log('🚀 [Form] Submit triggered');
+    console.log('📋 [Form] Current formData:', formData);
+    console.log('📋 [Form] FormData keys:', Object.keys(formData));
+    console.log('📋 [Form] FormData entries:', Object.entries(formData).map(([key, value]) => ({
+      key,
+      type: value instanceof File ? 'File' : Array.isArray(value) ? 'Array' : typeof value,
+      value: value instanceof File ? `File(${value.name})` : value
+    })));
     
     // ✅ Validar campos obrigatórios
     const newErrors: Record<string, string> = {};
@@ -126,17 +145,20 @@ export function AgentExecutionForm({
     
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      console.error('❌ [Form] Validation errors:', newErrors);
       return;
     }
     
     setErrors({});
-    onSubmit({
+    const submitData = {
       ...formData,
       department,
       deliveryMethod,
       outputFormat,
       email: recipientEmail,
-    });
+    };
+    console.log('✅ [Form] Submitting data:', submitData);
+    onSubmit(submitData);
   };
 
   return (

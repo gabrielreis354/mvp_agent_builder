@@ -216,32 +216,126 @@ export function TemplateGallery({ onSelectTemplate, onCreateFromScratch }: Templ
                 </Button>
               </div>
 
-              <p className="text-slate-600 dark:text-slate-400 mb-6">{selectedTemplate.description}</p>
-              <div className="mt-6 pt-6 border-t">
-                <div>
-                  <h4 className="font-semibold mb-3 text-slate-800 dark:text-slate-200">Caso de Uso Principal</h4>
-                  <p className="text-sm text-slate-700 dark:text-slate-300">{selectedTemplate.useCase}</p>
+              <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">{selectedTemplate.description}</p>
+              
+              <div className="space-y-6">
+                {/* Caso de Uso Principal */}
+                <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg">
+                  <h4 className="font-semibold mb-3 text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                    Caso de Uso Principal
+                  </h4>
+                  <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{selectedTemplate.useCase}</p>
                 </div>
 
-                <div className="flex gap-3">
-                  <Button 
-                    className="flex-1"
-                    onClick={() => {
-                      onSelectTemplate(selectedTemplate.id)
-                      setSelectedTemplate(null)
-                    }}
-                  >
-                    Usar Este Template
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    onClick={() => setSelectedTemplate(null)}
-                    className="dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:border-slate-600"
-                  >
-                    Cancelar
-                  </Button>
+                {/* Exemplos Práticos */}
+                <div>
+                  <h4 className="font-semibold mb-3 text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                    <Star className="h-5 w-5 text-yellow-500" />
+                    Exemplos Práticos
+                  </h4>
+                  <ul className="space-y-2">
+                    {selectedTemplate.name.includes('Contratos') && (
+                      <>
+                        <li className="text-sm text-slate-700 dark:text-slate-300 flex items-start gap-2">
+                          <span className="text-blue-500 mt-1">•</span>
+                          <span>Validar automaticamente cláusulas de contratos de admissão</span>
+                        </li>
+                        <li className="text-sm text-slate-700 dark:text-slate-300 flex items-start gap-2">
+                          <span className="text-blue-500 mt-1">•</span>
+                          <span>Gerar relatórios de conformidade com a CLT</span>
+                        </li>
+                        <li className="text-sm text-slate-700 dark:text-slate-300 flex items-start gap-2">
+                          <span className="text-blue-500 mt-1">•</span>
+                          <span>Enviar notificações automáticas sobre pendências</span>
+                        </li>
+                      </>
+                    )}
+                    {selectedTemplate.name.includes('Suporte') && (
+                      <>
+                        <li className="text-sm text-slate-700 dark:text-slate-300 flex items-start gap-2">
+                          <span className="text-blue-500 mt-1">•</span>
+                          <span>Responder dúvidas sobre benefícios e políticas</span>
+                        </li>
+                        <li className="text-sm text-slate-700 dark:text-slate-300 flex items-start gap-2">
+                          <span className="text-blue-500 mt-1">•</span>
+                          <span>Orientar sobre processos de férias e licenças</span>
+                        </li>
+                        <li className="text-sm text-slate-700 dark:text-slate-300 flex items-start gap-2">
+                          <span className="text-blue-500 mt-1">•</span>
+                          <span>Direcionar casos complexos para atendimento humano</span>
+                        </li>
+                      </>
+                    )}
+                    {selectedTemplate.name.includes('Despesas') && (
+                      <>
+                        <li className="text-sm text-slate-700 dark:text-slate-300 flex items-start gap-2">
+                          <span className="text-blue-500 mt-1">•</span>
+                          <span>Analisar reembolsos e aprovar automaticamente valores dentro do limite</span>
+                        </li>
+                        <li className="text-sm text-slate-700 dark:text-slate-300 flex items-start gap-2">
+                          <span className="text-blue-500 mt-1">•</span>
+                          <span>Gerar relatórios mensais de despesas por departamento</span>
+                        </li>
+                        <li className="text-sm text-slate-700 dark:text-slate-300 flex items-start gap-2">
+                          <span className="text-blue-500 mt-1">•</span>
+                          <span>Alertar sobre gastos acima da média</span>
+                        </li>
+                      </>
+                    )}
+                    {!selectedTemplate.name.includes('Contratos') && 
+                     !selectedTemplate.name.includes('Suporte') && 
+                     !selectedTemplate.name.includes('Despesas') && (
+                      <>
+                        <li className="text-sm text-slate-700 dark:text-slate-300 flex items-start gap-2">
+                          <span className="text-blue-500 mt-1">•</span>
+                          <span>Automatizar processos repetitivos de RH</span>
+                        </li>
+                        <li className="text-sm text-slate-700 dark:text-slate-300 flex items-start gap-2">
+                          <span className="text-blue-500 mt-1">•</span>
+                          <span>Gerar relatórios e análises inteligentes</span>
+                        </li>
+                        <li className="text-sm text-slate-700 dark:text-slate-300 flex items-start gap-2">
+                          <span className="text-blue-500 mt-1">•</span>
+                          <span>Integrar com sistemas existentes</span>
+                        </li>
+                      </>
+                    )}
+                  </ul>
                 </div>
+
+                {/* Informações Adicionais */}
+                <div className="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-400">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    <span>{selectedTemplate.estimatedTime}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Shield className="h-4 w-4" />
+                    <span>Nível: {selectedTemplate.difficulty}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Botões com mais espaçamento */}
+              <div className="flex gap-3 mt-8 pt-6 border-t border-slate-200 dark:border-slate-700">
+                <Button 
+                  className="flex-1"
+                  onClick={() => {
+                    onSelectTemplate(selectedTemplate.id)
+                    setSelectedTemplate(null)
+                  }}
+                >
+                  Usar Este Template
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => setSelectedTemplate(null)}
+                  className="dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:border-slate-600"
+                >
+                  Cancelar
+                </Button>
               </div>
             </div>
           </motion.div>

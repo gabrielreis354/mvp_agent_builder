@@ -22,6 +22,12 @@ model Invitation {
   token          String   @unique @default(cuid())
   expires        DateTime
   createdAt      DateTime @default(now())
+  
+  // Security fields
+  usedAt         DateTime? // Quando foi usado (uso único)
+  usedByIp       String?   // IP que usou o convite
+  invitedBy      String?   // ID do admin que convidou
+  acceptedByUserId String? // ID do usuário que aceitou
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }

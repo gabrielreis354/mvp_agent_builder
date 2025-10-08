@@ -560,97 +560,48 @@ IMPORTANTE: Substitua TODOS os campos entre colchetes [CAMPO] pelos dados reais 
           nodeType: 'ai',
           provider: 'openai',
           model: 'gpt-4',
-          prompt: `Analise este currículo e gere um relatório HTML profissional completo seguindo este formato EXATO. O HTML deve ser self-contained, com CSS inline ou em uma tag <style>.
+          prompt: `Analise este currículo e retorne um JSON estruturado com os seguintes campos:
 
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <title>Análise de Currículo - Triagem RH</title>
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; background: #f0fdf4; color: #1f2937; }
-        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .header { background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 30px; border-radius: 8px; text-align: center; margin-bottom: 30px; }
-        .score-box { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0; }
-        .score-number { font-size: 3em; font-weight: bold; margin: 10px 0; }
-        .section { margin: 25px 0; padding: 20px; border-left: 4px solid #10b981; background: #f0fdf4; border-radius: 0 8px 8px 0; }
-        .section h3 { color: #065f46; margin: 0 0 15px 0; font-size: 1.3em; }
-        .criteria-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }
-        .criteria-item { background: white; padding: 15px; border-radius: 8px; border: 1px solid #d1fae5; text-align: center; }
-        .criteria-score { font-size: 1.5em; font-weight: bold; color: #059669; }
-        .strengths { background: #dcfce7; border-left: 4px solid #16a34a; }
-        .weaknesses { background: #fef2f2; border-left: 4px solid #dc2626; }
-        .recommendation { background: #dbeafe; border-left: 4px solid #2563eb; }
-        .status-excellent { color: #16a34a; font-weight: bold; }
-        .status-good { color: #ca8a04; font-weight: bold; }
-        .status-poor { color: #dc2626; font-weight: bold; }
-        .footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 2px solid #e5e7eb; color: #6b7280; }
-        ul { padding-left: 20px; } li { margin-bottom: 0.5rem; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>👤 Análise de Currículo</h1>
-            <p>Triagem Automatizada - ${new Date().toLocaleDateString('pt-BR')}</p>
-        </div>
+{
+  "metadata": {
+    "titulo_relatorio": "Análise de Currículo - [Nome do Candidato]",
+    "tipo_analise": "Triagem de Currículos"
+  },
+  "analise_payload": {
+    "resumo_executivo": "Breve resumo da análise do candidato",
+    "dados_principais": {
+      "nome": "Nome completo",
+      "cargo_pretendido": "Cargo",
+      "experiencia_anos": 5,
+      "formacao": "Formação principal"
+    },
+    "pontuacao_geral": {
+      "total": 85,
+      "classificacao": "Excelente|Bom|Regular"
+    },
+    "criterios_avaliacao": [
+      {
+        "criterio": "Experiência Relevante",
+        "pontuacao": 18,
+        "maximo": 20,
+        "observacao": "Comentário sobre o critério"
+      }
+    ],
+    "pontos_principais": [
+      "Ponto forte 1",
+      "Ponto forte 2"
+    ],
+    "pontos_atencao": [
+      "Ponto de atenção 1"
+    ],
+    "recomendacoes": [
+      "Recomendação 1",
+      "Recomendação 2"
+    ]
+  }
+}
 
-        <div class="score-box">
-            <h2>Pontuação Geral</h2>
-            <div class="score-number">[PONTUAÇÃO]/100</div>
-            <p>Classificação: <span class="[CLASSE_STATUS]">[STATUS_CANDIDATO]</span></p>
-        </div>
-
-        <div class="section">
-            <h3>📋 DADOS DO CANDIDATO</h3>
-            <p><strong>Nome:</strong> [NOME_CANDIDATO]</p>
-            <p><strong>Cargo Pretendido:</strong> [CARGO_PRETENDIDO]</p>
-            <p><strong>Experiência Total:</strong> [ANOS_EXPERIENCIA] anos</p>
-            <p><strong>Formação:</strong> [FORMACAO_PRINCIPAL]</p>
-        </div>
-
-        <div class="section">
-            <h3>📊 AVALIAÇÃO POR CRITÉRIOS</h3>
-            <div class="criteria-grid">
-                <div class="criteria-item">
-                    <h4>Experiência Relevante</h4>
-                    <div class="criteria-score">[SCORE_EXPERIENCIA]/20</div>
-                </div>
-                <div class="criteria-item">
-                    <h4>Formação Acadêmica</h4>
-                    <div class="criteria-score">[SCORE_FORMACAO]/20</div>
-                </div>
-                <div class="criteria-item">
-                    <h4>Habilidades Técnicas</h4>
-                    <div class="criteria-score">[SCORE_HABILIDADES]/20</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="section strengths">
-            <h3>✅ PONTOS FORTES</h3>
-            <ul><li>[LISTAR_PONTOS_FORTES]</li></ul>
-        </div>
-
-        <div class="section weaknesses">
-            <h3>⚠️ PONTOS DE ATENÇÃO</h3>
-            <ul><li>[LISTAR_PONTOS_FRACOS]</li></ul>
-        </div>
-
-        <div class="section recommendation">
-            <h3>🎯 RECOMENDAÇÃO FINAL</h3>
-            <p><strong>Status:</strong> <span class="[CLASSE_RECOMENDACAO]">[RECOMENDACAO_STATUS]</span></p>
-            <p><strong>Justificativa:</strong> [JUSTIFICATIVA_DETALHADA]</p>
-            <p><strong>Próximos Passos:</strong> [PROXIMOS_PASSOS]</p>
-        </div>
-
-        <div class="footer">
-            <p>📄 Relatório gerado automaticamente pelo AutomateAI</p>
-        </div>
-    </div>
-</body>
-</html>
-`
+IMPORTANTE: Retorne APENAS o JSON, sem texto adicional antes ou depois.`
         }
       },
       {

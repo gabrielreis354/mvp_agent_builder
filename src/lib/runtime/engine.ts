@@ -741,9 +741,60 @@ Empresa XYZ Ltda                 João Silva Santos
   }
 
   private executeCondition(condition: string, input: any, context: ExecutionContext): any {
-    // TODO: Implementar avaliação de condições
-    console.log(`Condition: ${condition}`)
-    return input
+    try {
+      console.log(`🔍 [Condition] Evaluating: ${condition}`)
+      
+      if (!condition || condition === 'true') {
+        console.log(`✅ [Condition] No condition or always true, passing through`)
+        return { ...input, conditionMet: true }
+      }
+
+      // Criar contexto seguro para avaliação
+      const data = {
+        ...input,
+        ...context.variables,
+        value: input.value || input.extractedData?.value || null,
+        text: input.text || input.extractedText || input.extractedData?.text || '',
+      }
+
+      // Avaliar condição de forma segura
+      try {
+        // Criar função que avalia a condição
+        const conditionFunction = new Function('data', `
+          try {
+            return Boolean(${condition});
+          } catch (e) {
+            console.error('Condition evaluation error:', e);
+            return false;
+          }
+        `)
+
+        const result = conditionFunction(data)
+        console.log(`${result ? '✅' : '❌'} [Condition] Result: ${result}`)
+
+        return {
+          ...input,
+          conditionMet: result,
+          conditionResult: result,
+          skipNextNodes: !result, // Se condição falhar, pular próximos nodes
+        }
+      } catch (evalError) {
+        console.error(`❌ [Condition] Evaluation error:`, evalError)
+        // Em caso de erro, considerar condição como falsa
+        return {
+          ...input,
+          conditionMet: false,
+          conditionError: String(evalError),
+        }
+      }
+    } catch (error) {
+      console.error(`❌ [Condition] Unexpected error:`, error)
+      return {
+        ...input,
+        conditionMet: false,
+        conditionError: String(error),
+      }
+    }
   }
 
   private executeTransformation(transformation: string, input: any, context: ExecutionContext): any {

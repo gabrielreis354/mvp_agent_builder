@@ -7,13 +7,15 @@ export async function GET(request: Request) {
   const session = await getServerSession({ req: request as any, ...authOptions });
 
   // @ts-ignore
-  if (session?.user?.role !== 'ADMIN') {
-    return NextResponse.json({ error: 'Apenas administradores podem ver os membros.' }, { status: 403 });
+  if (!session?.user?.organizationId) {
+    return NextResponse.json({ error: 'Usuário não autenticado ou sem organização.' }, { status: 401 });
   }
 
   try {
     // @ts-ignore
     const organizationId = session.user.organizationId;
+    // @ts-ignore
+    const userRole = session.user.role;
 
     const members = await prisma.user.findMany({
       where: { organizationId },
@@ -27,7 +29,8 @@ export async function GET(request: Request) {
       orderBy: { name: 'asc' },
     });
 
-    const pendingInvitations = await prisma.invitation.findMany({
+    // Apenas ADMIN pode ver convites pendentes
+    const pendingInvitations = userRole === 'ADMIN' ? await prisma.invitation.findMany({
       where: { organizationId },
       select: {
         id: true,
@@ -35,9 +38,14 @@ export async function GET(request: Request) {
         expires: true,
       },
       orderBy: { createdAt: 'desc' },
-    });
+    }) : [];
 
-    return NextResponse.json({ success: true, members, pendingInvitations });
+    return NextResponse.json({ 
+      success: true, 
+      members, 
+      pendingInvitations,
+      canManageMembers: userRole === 'ADMIN' // Indica se pode convidar/remover
+    });
 
   } catch (error) {
     console.error('Falha ao buscar membros da organização:', error);

@@ -129,11 +129,24 @@ export function AgentExecutionModalV2({
       for (const key in submittedFormData) {
         if (Object.prototype.hasOwnProperty.call(submittedFormData, key)) {
           const value = submittedFormData[key];
+          
+          // Verificar se é um File único
           if (value instanceof File) {
             console.log(`📎 [ExecutionModal] Appending file: ${key} = ${value.name} (${value.size} bytes)`);
             executionData.append("file", value);
             hasFile = true;
-          } else if (value !== null && value !== undefined) {
+          } 
+          // Verificar se é um array de Files
+          else if (Array.isArray(value) && value.length > 0 && value[0] instanceof File) {
+            console.log(`📎 [ExecutionModal] Appending ${value.length} files from array: ${key}`);
+            value.forEach((file: File, index: number) => {
+              console.log(`  📎 File ${index + 1}: ${file.name} (${file.size} bytes)`);
+              executionData.append("file", file);
+            });
+            hasFile = true;
+          } 
+          // Outros valores
+          else if (value !== null && value !== undefined && !Array.isArray(value)) {
             console.log(`📝 [ExecutionModal] Appending field: ${key} = ${value}`);
             executionData.append(key, String(value));
           }
@@ -142,6 +155,8 @@ export function AgentExecutionModalV2({
       
       if (!hasFile) {
         console.warn('⚠️ [ExecutionModal] No file found in formData!');
+        console.log('📋 [ExecutionModal] FormData keys:', Object.keys(submittedFormData));
+        console.log('📋 [ExecutionModal] FormData values:', submittedFormData);
       }
 
       setExecutionProgress({

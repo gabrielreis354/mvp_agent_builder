@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Handle, Position } from 'reactflow'
+import { Handle, Position, useReactFlow } from 'reactflow'
 import { 
   Download, 
   Brain, 
@@ -20,8 +20,11 @@ interface CustomNodeProps {
     provider?: string
     model?: string
     isSelected?: boolean
+    onConfigure?: () => void
+    onDelete?: () => void
   }
   selected?: boolean
+  id: string
 }
 
 const iconMap = {
@@ -40,9 +43,28 @@ const colorMap = {
   api: 'from-red-500 to-red-600'
 }
 
-export function CustomNode({ data, selected }: CustomNodeProps) {
+export function CustomNode({ data, selected, id }: CustomNodeProps) {
   const IconComponent = iconMap[data.nodeType]
   const colorClass = colorMap[data.nodeType]
+  const { setNodes, setEdges } = useReactFlow()
+
+  const handleConfigure = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (data.onConfigure) {
+      data.onConfigure()
+    }
+  }
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (data.onDelete) {
+      data.onDelete()
+    } else {
+      // Fallback: remover node diretamente
+      setNodes((nds) => nds.filter((node) => node.id !== id))
+      setEdges((eds) => eds.filter((edge) => edge.source !== id && edge.target !== id))
+    }
+  }
 
   return (
     <div className={`
@@ -76,10 +98,18 @@ export function CustomNode({ data, selected }: CustomNodeProps) {
         
         {selected && (
           <div className="flex gap-1">
-            <button className="p-1 hover:bg-white/20 rounded">
+            <button 
+              onClick={handleConfigure}
+              className="p-1 hover:bg-white/20 rounded transition-colors"
+              title="Configurar"
+            >
               <Settings className="h-3 w-3" />
             </button>
-            <button className="p-1 hover:bg-white/20 rounded">
+            <button 
+              onClick={handleDelete}
+              className="p-1 hover:bg-red-500/30 rounded transition-colors"
+              title="Excluir"
+            >
               <Trash2 className="h-3 w-3" />
             </button>
           </div>

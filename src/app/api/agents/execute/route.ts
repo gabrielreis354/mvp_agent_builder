@@ -236,7 +236,68 @@ async function handlePOST(request: NextRequest): Promise<NextResponse> {
       // Não falhar a requisição se o salvamento falhar
     }
 
-    // 7. Retornar o resultado JSON
+    // 7. ✅ ENVIAR EMAIL SE SOLICITADO (COM ANEXO)
+    if (input.deliveryMethod === 'email' && input.email) {
+      console.log(`📧 [API Execute] Sending result via email to: ${input.email}`);
+      
+      try {
+        // Gerar documento para anexar
+        const docFormat = input.outputFormat || 'docx';
+        console.log(`📄 [API Execute] Generating ${docFormat} document for email attachment`);
+        
+        const generateResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3001'}/api/generate-document`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            content: result.output,
+            format: docFormat,
+            fileName: agent.name.replace(/\s+/g, '_')
+          })
+        });
+
+        let attachment = null;
+        if (generateResponse.ok) {
+          const docBlob = await generateResponse.arrayBuffer();
+          attachment = {
+            filename: `${agent.name.replace(/\s+/g, '_')}.${docFormat}`,
+            content: Buffer.from(docBlob),
+            contentType: docFormat === 'pdf' ? 'application/pdf' : 
+                        docFormat === 'docx' ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' :
+                        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+          };
+          console.log(`✅ [API Execute] Document generated for attachment: ${attachment.filename}`);
+        } else {
+          console.warn(`⚠️ [API Execute] Failed to generate document for attachment`);
+        }
+
+        // Enviar email com anexo
+        const emailResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3001'}/api/send-report-email`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: input.email,
+            subject: `Resultado: ${agent.name}`,
+            agentName: agent.name,
+            report: result.output,
+            format: 'html',
+            attachment: attachment
+          })
+        });
+
+        const emailResult = await emailResponse.json();
+        
+        if (emailResult.success) {
+          console.log(`✅ [API Execute] Email sent successfully to ${input.email} with attachment`);
+        } else {
+          console.error(`❌ [API Execute] Failed to send email:`, emailResult.error);
+        }
+      } catch (emailError) {
+        console.error(`❌ [API Execute] Error sending email:`, emailError);
+        // Não falhar a execução se o email falhar
+      }
+    }
+
+    // 8. Retornar o resultado JSON
     console.log(
       "✅ [API Execute] Execution successful. Returning JSON result."
     );

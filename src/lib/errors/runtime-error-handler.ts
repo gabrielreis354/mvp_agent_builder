@@ -67,12 +67,16 @@ export function validateNode(node: AgentNode): void {
       break
 
     case 'logic':
+      // ✅ logicType é opcional agora (simplificado para usuários)
+      // Se não tiver logicType, assume 'condition' como padrão
       if (!node.data.logicType) {
-        throw new ValidationError(
-          'node.data.logicType',
-          'Nó de lógica requer um tipo (condition, transform, validate)',
-          { nodeId: node.id, nodeLabel: node.data.label }
-        )
+        node.data.logicType = 'condition';
+      }
+      
+      // Validar se tem condição definida
+      if (!node.data.condition && !node.data.conditionDescription) {
+        console.warn(`⚠️ Nó de lógica ${node.id} sem condição definida, usando 'true' como padrão`);
+        node.data.condition = 'true'; // Sempre passa
       }
       break
   }

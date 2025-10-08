@@ -366,88 +366,150 @@ export function NodeToolbar({ node, onUpdate, onDelete }: NodeToolbarProps) {
               </>
             )}
 
-            {/* API Node Configuration */}
+            {/* API Node Configuration - SIMPLIFICADO PARA EMAIL */}
             {((node.data as any)?.nodeType === 'api' || node.type === 'api') && (
               <>
+                <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-4 mb-4">
+                  <div className="flex items-start gap-2">
+                    <Info className="h-5 w-5 text-green-400 mt-0.5" />
+                    <div className="text-sm text-green-200">
+                      <p className="font-medium mb-1">Envio de Email Automático</p>
+                      <p className="text-green-300/80">
+                        Configure para enviar emails automaticamente com os resultados da análise.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Endpoint URL
+                    Para quem enviar?
                   </label>
                   <input
-                    type="url"
-                    value={localData.apiEndpoint || ""}
+                    type="email"
+                    value={localData.emailTo || ""}
+                    onChange={(e) => {
+                      handleInputChange("emailTo", e.target.value);
+                      // Configurar automaticamente o endpoint de email
+                      handleInputChange("apiEndpoint", "/api/send-email");
+                      handleInputChange("apiMethod", "POST");
+                    }}
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md text-white focus:border-blue-500 focus:outline-none"
+                    placeholder="exemplo@empresa.com.br"
+                  />
+                  <p className="text-xs text-gray-400 mt-2">
+                    Digite o email do destinatário
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Assunto do Email
+                  </label>
+                  <input
+                    type="text"
+                    value={localData.emailSubject || ""}
                     onChange={(e) =>
-                      handleInputChange("apiEndpoint", e.target.value)
+                      handleInputChange("emailSubject", e.target.value)
                     }
                     className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md text-white focus:border-blue-500 focus:outline-none"
-                    placeholder="https://api.exemplo.com/endpoint"
+                    placeholder="Relatório de Análise de Contrato"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Método HTTP
+                    O que incluir no email?
                   </label>
                   <select
-                    value={localData.apiMethod || "POST"}
+                    value={localData.emailContent || "full_report"}
                     onChange={(e) =>
-                      handleInputChange("apiMethod", e.target.value)
+                      handleInputChange("emailContent", e.target.value)
                     }
                     className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md text-white focus:border-blue-500 focus:outline-none"
                   >
-                    <option value="GET">GET</option>
-                    <option value="POST">POST</option>
-                    <option value="PUT">PUT</option>
-                    <option value="DELETE">DELETE</option>
+                    <option value="full_report">Relatório completo</option>
+                    <option value="summary">Apenas resumo</option>
+                    <option value="highlights">Apenas pontos importantes</option>
+                    <option value="pdf_attachment">Anexar PDF</option>
                   </select>
+                  <p className="text-xs text-gray-400 mt-2">
+                    Escolha o formato do conteúdo do email
+                  </p>
                 </div>
               </>
             )}
 
-            {/* Logic Node Configuration */}
+            {/* Logic Node Configuration - ULTRA SIMPLIFICADO */}
             {((node.data as any)?.nodeType === 'logic' || node.type === 'logic') && (
               <>
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Tipo de Lógica
-                  </label>
-                  <select
-                    value={localData.logicType || "condition"}
-                    onChange={(e) =>
-                      handleInputChange("logicType", e.target.value)
-                    }
-                    className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md text-white focus:border-blue-500 focus:outline-none"
-                  >
-                    <option value="condition">Condição</option>
-                    <option value="transform">Transformação</option>
-                    <option value="validate">Validação</option>
-                  </select>
+                <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 mb-4">
+                  <div className="flex items-start gap-2">
+                    <Info className="h-5 w-5 text-blue-400 mt-0.5" />
+                    <div className="text-sm text-blue-200">
+                      <p className="font-medium mb-2">Como escrever uma condição?</p>
+                      <div className="space-y-2 text-xs text-blue-300/90">
+                        <p><strong>Exemplos práticos:</strong></p>
+                        <ul className="list-disc list-inside space-y-1 ml-2">
+                          <li>Salário maior que 5000</li>
+                          <li>Idade menor que 30</li>
+                          <li>Nome contém "Silva"</li>
+                          <li>Cargo igual a "Gerente"</li>
+                          <li>Tem benefícios</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Expressão
+                    Escreva sua condição
                   </label>
                   <textarea
-                    value={
-                      localData.condition ||
-                      localData.transformation ||
-                      localData.validation ||
-                      ""
-                    }
+                    value={localData.conditionDescription || ""}
                     onChange={(e) => {
-                      const field =
-                        localData.logicType === "condition"
-                          ? "condition"
-                          : localData.logicType === "transform"
-                          ? "transformation"
-                          : "validation";
-                      handleInputChange(field, e.target.value);
+                      const description = e.target.value;
+                      handleInputChange("conditionDescription", description);
+                      
+                      // Converter descrição em português para código automaticamente
+                      let condition = "true";
+                      const lower = description.toLowerCase();
+                      
+                      // Detectar padrões comuns e gerar código
+                      if (lower.includes("maior que") || lower.includes(">")) {
+                        const match = description.match(/(\d+)/);
+                        if (match) {
+                          condition = `data.value > ${match[1]}`;
+                        }
+                      } else if (lower.includes("menor que") || lower.includes("<")) {
+                        const match = description.match(/(\d+)/);
+                        if (match) {
+                          condition = `data.value < ${match[1]}`;
+                        }
+                      } else if (lower.includes("igual a") || lower.includes("==")) {
+                        const match = description.match(/"([^"]+)"/);
+                        if (match) {
+                          condition = `data.value === "${match[1]}"`;
+                        }
+                      } else if (lower.includes("contém") || lower.includes("contem")) {
+                        const match = description.match(/"([^"]+)"/);
+                        if (match) {
+                          condition = `data.text && data.text.includes("${match[1]}")`;
+                        }
+                      } else if (lower.includes("tem ") || lower.includes("possui")) {
+                        condition = `data.value !== null && data.value !== undefined && data.value !== ''`;
+                      }
+                      
+                      handleInputChange("condition", condition);
                     }}
                     rows={3}
-                    className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md text-white focus:border-blue-500 focus:outline-none resize-none font-mono text-sm"
-                    placeholder="data.confidence > 0.8"
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md text-white focus:border-blue-500 focus:outline-none resize-none"
+                    placeholder="Ex: Salário maior que 5000"
                   />
+                  <p className="text-xs text-gray-400 mt-2">
+                    Escreva em português simples. O sistema entenderá automaticamente.
+                  </p>
                 </div>
               </>
             )}
