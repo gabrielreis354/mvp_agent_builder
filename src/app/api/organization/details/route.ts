@@ -29,6 +29,9 @@ export async function GET(request: Request) {
           },
         },
         agents: {
+          where: {
+            isPublic: true  // ✅ Filtrar apenas agentes públicos
+          },
           include: {
             user: {
               select: {

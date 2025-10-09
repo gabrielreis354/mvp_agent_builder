@@ -1,9 +1,5 @@
 import { NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
-
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+import { AIProviderManager } from '@/lib/ai-providers';
 
 export async function POST(request: Request) {
   const { prompt } = await request.json();
@@ -13,6 +9,13 @@ export async function POST(request: Request) {
   }
 
   try {
+    // ✅ SOLID: Reutilizar AIProviderManager com fallback automático
+    const aiManager = new AIProviderManager({
+      anthropic: { apiKey: process.env.ANTHROPIC_API_KEY || '' },
+      openai: { apiKey: process.env.OPENAI_API_KEY || '' },
+      google: { apiKey: process.env.GOOGLE_API_KEY || '' },
+    });
+
     const systemPrompt = `
       Você é um arquiteto de sistemas que traduz requisitos de negócios em fluxos de trabalho JSON detalhados.
 
@@ -63,22 +66,23 @@ export async function POST(request: Request) {
       }
     `;
 
-    const msg = await anthropic.messages.create({
-      model: 'claude-3-haiku-20240307',
-      max_tokens: 4096,
-      system: systemPrompt, // Anthropic usa um parâmetro 'system' dedicado
-      messages: [
-        { role: 'user', content: `**PROMPT DO USUÁRIO:**\n${prompt}` },
-        { role: 'assistant', content: '{' } // Força a saída a começar com JSON
-      ],
-    });
+    // ✅ Usar AIProviderManager com fallback automático
+    // Fallback: Anthropic → OpenAI → Google
+    const response = await aiManager.generateCompletion(
+      'anthropic',  // Preferência inicial
+      `**PROMPT DO USUÁRIO:**\n${prompt}`,
+      'claude-3-5-haiku-20241022',  // Modelo mais rápido
+      {
+        systemPrompt,
+        temperature: 0.3,
+        maxTokens: 4096,
+        enableFallback: true  // ✅ Ativa fallback automático
+      }
+    );
 
-    // O conteúdo JSON estará no primeiro bloco de conteúdo da resposta
-    const contentBlock = msg.content[0];
-    if (contentBlock.type !== 'text') {
-      throw new Error('Invalid response format from AI: Expected a text block.');
-    }
-    let jsonString = '{' + contentBlock.text;
+    console.log(`✅ Agente gerado usando provider: ${response.provider} (${response.model})`);
+
+    let jsonString = response.content;
     // Limpeza agressiva para remover artefatos comuns de IA
     jsonString = jsonString.replace(/```json/g, '').replace(/```/g, '').replace(/\n/g, '');
 
@@ -107,9 +111,24 @@ export async function POST(request: Request) {
       throw new Error('Invalid JSON structure returned from AI');
     }
 
-    return NextResponse.json(generatedJson);
+    // ✅ Retornar com metadados do provider usado
+    return NextResponse.json({
+      ...generatedJson,
+      _meta: {
+        provider: response.provider,
+        model: response.model,
+        tokens_used: response.tokens_used,
+        generated_at: new Date().toISOString()
+      }
+    });
   } catch (error) {
     console.error('Error generating agent from natural language:', error);
-    return NextResponse.json({ error: 'Failed to generate agent' }, { status: 500 });
+    
+    // ✅ Erro mais descritivo
+    return NextResponse.json({ 
+      error: 'Failed to generate agent',
+      details: error instanceof Error ? error.message : 'Unknown error',
+      suggestion: 'Tente reformular sua descrição de forma mais clara ou use o builder visual.'
+    }, { status: 500 });
   }
 }

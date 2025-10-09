@@ -1,5 +1,94 @@
 # Changelog - SimplifiqueIA RH
 
+## [2025-10-09] - Cards de Email Modernizados, Segurança de Convites e Compartilhamento
+
+### ✅ Melhorias de UX
+
+#### **1. Botão de Compartilhamento de Agentes (NOVO)**
+- Toggle público/privado no card do agente
+- Ícones dinâmicos (🔒 Lock / 🌍 Globe)
+- Cores semânticas (cinza/verde)
+- Feedback visual durante alteração
+- **Arquivo:** `src/components/profile/agents-section.tsx`
+
+#### **2. Renderizador Dinâmico de Email (REVOLUCIONÁRIO)**
+- **Renderiza qualquer estrutura de JSON automaticamente**
+- Não precisa modificar código para novos agentes
+- Cores inteligentes baseadas no tipo de campo
+- Formatação automática de nomes de campos
+- Suporta estruturas aninhadas infinitas
+- Gradientes modernos e box shadows
+- Ícones apropriados por tipo de conteúdo
+- **Arquivo:** `src/app/api/send-report-email/route.ts`
+- **Documentação:** `RENDERIZADOR_DINAMICO_EMAIL.md`
+
+#### **2. Geração de DOCX Completa**
+- Adicionada função `_render_docx_content()` para conteúdo dinâmico
+- DOCX agora processa `full_analysis` completo (paridade com PDF)
+- Renderização recursiva de estruturas complexas
+- **Arquivo:** `pdf-service/app.py`
+
+### 🔒 Segurança
+
+#### **1. Convites com Uso Único**
+- Validação de `usedAt` para prevenir reuso
+- Mensagem clara quando convite já foi usado
+- Status 410 (Gone) para convites usados
+- **Arquivo:** `src/app/api/organization/join/route.ts`
+
+#### **2. Rastreamento de IP**
+- IP registrado em `usedByIp` quando convite é aceito
+- Suporte a `x-forwarded-for` e `x-real-ip`
+- Logs de segurança detalhados
+- **Arquivo:** `src/app/api/organization/join/route.ts`
+
+#### **3. Limpeza Automática de Convites**
+- Convites usados podem ser deletados para permitir novo convite
+- Convites expirados são removidos automaticamente
+- Validação melhorada de duplicatas
+- **Arquivo:** `src/app/api/organization/invite/route.ts`
+
+#### **4. API de Auditoria (NOVA)**
+- Endpoint: `GET /api/organization/invitations/audit`
+- Lista todos os convites com status (pending, used, expired)
+- Mostra quem convidou e quem aceitou
+- Estatísticas agregadas
+- Apenas para ADMIN
+- **Arquivo:** `src/app/api/organization/invitations/audit/route.ts`
+
+### 🔧 Correções Técnicas
+
+#### **1. Sincronização de Banco de Dados**
+- Scripts `.bat` criados para sincronizar local e produção
+- Banco Neon (produção) atualizado com campos de segurança
+- Banco local sincronizado
+- **Arquivos:** `sync-db.bat`, `sync-db-production.bat`
+
+#### **2. Erro TypeScript Corrigido**
+- Removida referência a `conditionDescription` (não existe no tipo)
+- Validação simplificada de Logic Node
+- **Arquivo:** `src/lib/errors/runtime-error-handler.ts`
+
+### 📋 Arquivos Criados
+
+```
+src/app/api/organization/invitations/audit/route.ts (NOVO)
+sync-db-production.bat (NOVO)
+MELHORIAS_IMPLEMENTADAS.md (NOVO)
+```
+
+### 📋 Arquivos Modificados
+
+```
+src/app/api/send-report-email/route.ts
+src/app/api/organization/invite/route.ts
+src/app/api/organization/join/route.ts
+src/lib/errors/runtime-error-handler.ts
+pdf-service/app.py
+```
+
+---
+
 ## [2025-10-08] - Correções de Email, Upload e Geração de Documentos
 
 ### ✅ Corrigido

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Brain, Plus, Edit, Play } from 'lucide-react';
+import { Brain, Plus, Edit, Play, Globe, Lock } from 'lucide-react';
 import { AgentCardSkeleton } from './agent-card-skeleton';
 import { useExecutionStore } from '@/lib/store/execution-store';
 import { Button } from '@/components/ui/button'
@@ -14,6 +14,7 @@ interface AgentsSectionProps {
 export function AgentsSection({ userId }: AgentsSectionProps) {
   const [agents, setAgents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [togglingShare, setTogglingShare] = useState<string | null>(null);
   const { openModal } = useExecutionStore();
 
   useEffect(() => {
@@ -42,6 +43,53 @@ export function AgentsSection({ userId }: AgentsSectionProps) {
       console.error('Erro ao buscar agentes:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const toggleShare = async (agentId: string, currentIsPublic: boolean) => {
+    try {
+      console.log('🔄 [Frontend] Alterando visibilidade:', { 
+        agentId, 
+        currentIsPublic, 
+        newIsPublic: !currentIsPublic 
+      });
+      
+      setTogglingShare(agentId);
+      const response = await fetch(`/api/agents/${agentId}/share`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isPublic: !currentIsPublic })
+      });
+
+      console.log('📡 [Frontend] Resposta da API:', { 
+        status: response.status, 
+        ok: response.ok 
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ [Frontend] Sucesso:', data);
+        
+        // Atualizar estado local
+        setAgents(agents.map(a => 
+          a.id === agentId ? { ...a, isPublic: !currentIsPublic } : a
+        ));
+        
+        // Feedback visual
+        alert(data.message || 'Visibilidade alterada com sucesso!');
+        
+        // ✅ Recarregar lista de agentes para garantir sincronização
+        await fetchAgents();
+      } else {
+        const error = await response.json();
+        console.error('❌ [Frontend] Erro da API:', error);
+        alert(error.error || 'Erro ao alterar visibilidade do agente');
+      }
+    } catch (error) {
+      console.error('❌ [Frontend] Erro ao compartilhar agente:', error);
+      alert('Erro ao alterar visibilidade do agente');
+    } finally {
+      setTogglingShare(null);
     }
   }
 
@@ -123,7 +171,7 @@ export function AgentsSection({ userId }: AgentsSectionProps) {
               <div className="h-px bg-gradient-to-r from-transparent via-white/20 to-transparent mb-4" />
 
               {/* Botões de Ação */}
-              <div className="flex gap-2">
+              <div className="flex gap-2 mb-3">
                 <Button
                   size="sm"
                   className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-blue-500/50 transition-all duration-300"
@@ -160,6 +208,27 @@ export function AgentsSection({ userId }: AgentsSectionProps) {
                   Editar
                 </Button>
               </div>
+
+              {/* Botão de Compartilhamento */}
+              <Button
+                size="sm"
+                variant="ghost"
+                className="w-full justify-start text-xs bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all duration-300"
+                onClick={() => toggleShare(agent.id, agent.isPublic || false)}
+                disabled={togglingShare === agent.id}
+              >
+                {agent.isPublic ? (
+                  <>
+                    <Globe className="h-3 w-3 mr-2 text-green-400" />
+                    <span className="text-green-300">Público na Organização</span>
+                  </>
+                ) : (
+                  <>
+                    <Lock className="h-3 w-3 mr-2 text-gray-400" />
+                    <span className="text-gray-400">Privado (só você)</span>
+                  </>
+                )}
+              </Button>
             </div>
           ))}
         </div>

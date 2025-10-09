@@ -74,7 +74,7 @@ export function validateNode(node: AgentNode): void {
       }
       
       // Validar se tem condição definida
-      if (!node.data.condition && !node.data.conditionDescription) {
+      if (!node.data.condition) {
         console.warn(`⚠️ Nó de lógica ${node.id} sem condição definida, usando 'true' como padrão`);
         node.data.condition = 'true'; // Sempre passa
       }

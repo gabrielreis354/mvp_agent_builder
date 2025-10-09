@@ -21,6 +21,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'O email é obrigatório.' }, { status: 400 });
     }
 
+    // Validar formato do email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return NextResponse.json({ error: 'Formato de email inválido.' }, { status: 400 });
+    }
+
+    // Verificar se está tentando convidar a si mesmo
+    // @ts-ignore
+    if (session.user?.email && email.toLowerCase() === session.user.email.toLowerCase()) {
+      return NextResponse.json({ 
+        error: 'Você não pode enviar um convite para si mesmo.',
+        details: 'Você já faz parte desta organização.'
+      }, { status: 400 });
+    }
+
     // Verifica se o usuário já existe na organização
     const existingUser = await prisma.user.findFirst({
       where: { email, organizationId },
@@ -29,10 +44,31 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Este usuário já pertence à organização.' }, { status: 409 });
     }
 
-    // Verifica se já existe um convite pendente
-    const existingInvitation = await prisma.invitation.findUnique({ where: { email } });
+    // Verifica se já existe um convite pendente NESTA organização (não usado)
+    const existingInvitation = await prisma.invitation.findFirst({ 
+      where: { 
+        email,
+        organizationId  // ✅ Filtrar por organização
+      } 
+    });
+    
     if (existingInvitation) {
-      return NextResponse.json({ error: 'Um convite para este email já foi enviado.' }, { status: 409 });
+      // Se o convite já foi usado, permitir criar novo
+      if (existingInvitation.usedAt) {
+        // Deletar convite antigo usado para permitir novo convite
+        await prisma.invitation.delete({ where: { id: existingInvitation.id } });
+        console.log(`🔄 Convite antigo (usado) deletado para ${email}. Criando novo...`);
+      } else if (new Date() > existingInvitation.expires) {
+        // Se expirou, deletar e permitir novo
+        await prisma.invitation.delete({ where: { id: existingInvitation.id } });
+        console.log(`🔄 Convite expirado deletado para ${email}. Criando novo...`);
+      } else {
+        // Convite ainda válido e não usado NESTA organização
+        return NextResponse.json({ 
+          error: 'Um convite válido para este email já existe nesta organização.',
+          details: `Convite enviado em ${existingInvitation.createdAt.toLocaleDateString('pt-BR')} e expira em ${existingInvitation.expires.toLocaleDateString('pt-BR')}`
+        }, { status: 409 });
+      }
     }
 
     // Cria o convite

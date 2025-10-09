@@ -52,86 +52,146 @@ export async function POST(request: NextRequest) {
       parsedReport = report;
     }
     
-    // Se temos um objeto JSON estruturado, extrair campos importantes
+    // Função auxiliar para formatar nome de campo
+    const formatFieldName = (fieldName: string): string => {
+      return fieldName
+        .replace(/_/g, ' ')
+        .replace(/([A-Z])/g, ' $1')
+        .trim()
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+    };
+
+    // Função auxiliar para escolher cor do card baseado no tipo de campo
+    const getCardStyle = (fieldName: string, index: number) => {
+      const styles = [
+        { bg: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)', border: '#3b82f6', color: '#1e40af' }, // Azul
+        { bg: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)', border: '#10b981', color: '#065f46' }, // Verde
+        { bg: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)', border: '#f59e0b', color: '#92400e' }, // Amarelo
+        { bg: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)', border: '#2563eb', color: '#1e40af' }, // Azul escuro
+        { bg: 'linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%)', border: '#ec4899', color: '#831843' }, // Rosa
+      ];
+      
+      // Cores especiais para campos conhecidos
+      if (fieldName.includes('resumo')) return styles[0];
+      if (fieldName.includes('dados') || fieldName.includes('informacoes')) return styles[1];
+      if (fieldName.includes('pontuacao') || fieldName.includes('score')) return styles[2];
+      if (fieldName.includes('recomendacoes') || fieldName.includes('sugestoes')) return styles[3];
+      if (fieldName.includes('riscos') || fieldName.includes('alertas')) return { bg: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)', border: '#dc2626', color: '#991b1b' };
+      
+      // Rotacionar cores para outros campos
+      return styles[index % styles.length];
+    };
+
+    // Função recursiva para renderizar qualquer estrutura de dados
+    const renderDynamicContent = (data: any, depth: number = 0, cardIndex: number = 0): string => {
+      let html = '';
+      
+      if (typeof data === 'string') {
+        return `<p style="margin: 0; color: #334155; line-height: 1.6;">${data}</p>`;
+      }
+      
+      if (typeof data === 'number' || typeof data === 'boolean') {
+        return `<p style="margin: 0; color: #334155; font-weight: 600;">${data}</p>`;
+      }
+      
+      if (Array.isArray(data)) {
+        if (data.length === 0) return '';
+        
+        // Se é array de strings simples, renderizar como lista
+        if (data.every(item => typeof item === 'string')) {
+          return `
+            <ul style="margin: 0; padding-left: 20px; list-style: none;">
+              ${data.map(item => `<li style="margin: 8px 0; padding: 10px; background: white; border-radius: 6px; position: relative; padding-left: 30px;"><span style="position: absolute; left: 10px; color: #3b82f6; font-weight: bold;">•</span>${item}</li>`).join('')}
+            </ul>
+          `;
+        }
+        
+        // Se é array de objetos, renderizar cada um
+        return data.map((item, idx) => renderDynamicContent(item, depth + 1, cardIndex + idx)).join('');
+      }
+      
+      if (typeof data === 'object' && data !== null) {
+        let localCardIndex = cardIndex;
+        
+        for (const [key, value] of Object.entries(data)) {
+          // Pular campos internos ou vazios
+          if (key === 'full_analysis' || key === 'metadata' || value === null || value === undefined) continue;
+          
+          const fieldTitle = formatFieldName(key);
+          const style = getCardStyle(key, localCardIndex);
+          
+          // Se é um objeto simples (chave-valor), renderizar como card de dados
+          if (typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length <= 5) {
+            const entries = Object.entries(value).filter(([k, v]) => v !== null && v !== undefined);
+            if (entries.length > 0) {
+              html += `
+                <div style="margin-bottom: 16px; padding: 20px; background: ${style.bg}; border-left: 5px solid ${style.border}; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                  <h4 style="margin: 0 0 12px 0; color: ${style.color}; font-size: 18px;">📊 ${fieldTitle}</h4>
+                  <div style="display: grid; gap: 8px;">
+                    ${entries.map(([k, v]) => `
+                      <p style="margin: 0; padding: 8px; background: white; border-radius: 6px;">
+                        <strong style="color: ${style.border};">${formatFieldName(k)}:</strong> 
+                        <span style="color: #334155;">${v}</span>
+                      </p>
+                    `).join('')}
+                  </div>
+                </div>
+              `;
+            }
+          }
+          // Se é uma string ou número, renderizar como card simples
+          else if (typeof value === 'string' || typeof value === 'number') {
+            html += `
+              <div style="margin-bottom: 16px; padding: 20px; background: ${style.bg}; border-left: 5px solid ${style.border}; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <h4 style="margin: 0 0 12px 0; color: ${style.color}; font-size: 18px;">📋 ${fieldTitle}</h4>
+                ${renderDynamicContent(value, depth + 1, localCardIndex)}
+              </div>
+            `;
+          }
+          // Se é um array, renderizar como card com lista
+          else if (Array.isArray(value) && value.length > 0) {
+            html += `
+              <div style="margin-bottom: 16px; padding: 20px; background: ${style.bg}; border-left: 5px solid ${style.border}; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <h4 style="margin: 0 0 12px 0; color: ${style.color}; font-size: 18px;">📌 ${fieldTitle}</h4>
+                ${renderDynamicContent(value, depth + 1, localCardIndex)}
+              </div>
+            `;
+          }
+          // Se é um objeto complexo, renderizar recursivamente
+          else if (typeof value === 'object') {
+            html += `
+              <div style="margin-bottom: 16px; padding: 20px; background: ${style.bg}; border-left: 5px solid ${style.border}; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <h4 style="margin: 0 0 12px 0; color: ${style.color}; font-size: 18px;">🔍 ${fieldTitle}</h4>
+                ${renderDynamicContent(value, depth + 1, localCardIndex)}
+              </div>
+            `;
+          }
+          
+          localCardIndex++;
+        }
+      }
+      
+      return html;
+    };
+
+    // Se temos um objeto JSON estruturado, renderizar dinamicamente
     if (parsedReport && typeof parsedReport === 'object') {
       const payload = parsedReport.analise_payload || parsedReport;
       
-      // Construir HTML formatado do JSON
+      console.log('📧 Renderizando email com campos:', Object.keys(payload));
+      
+      // Construir HTML formatado dinamicamente
       reportContent = '<div style="font-family: sans-serif;">';
-      
-      // Resumo Executivo
-      if (payload.resumo_executivo) {
-        reportContent += `
-          <div style="margin-bottom: 20px; padding: 15px; background: #f0f9ff; border-left: 4px solid #3b82f6; border-radius: 4px;">
-            <h4 style="margin: 0 0 10px 0; color: #1e40af;">📋 Resumo Executivo</h4>
-            <p style="margin: 0;">${payload.resumo_executivo}</p>
-          </div>
-        `;
-      }
-      
-      // Dados Principais
-      if (payload.dados_principais) {
-        const dados = payload.dados_principais;
-        reportContent += `
-          <div style="margin-bottom: 20px; padding: 15px; background: #f0fdf4; border-left: 4px solid #10b981; border-radius: 4px;">
-            <h4 style="margin: 0 0 10px 0; color: #065f46;">👤 Dados Principais</h4>
-            ${dados.nome ? `<p style="margin: 5px 0;"><strong>Nome:</strong> ${dados.nome}</p>` : ''}
-            ${dados.cargo_pretendido ? `<p style="margin: 5px 0;"><strong>Cargo:</strong> ${dados.cargo_pretendido}</p>` : ''}
-            ${dados.experiencia_anos ? `<p style="margin: 5px 0;"><strong>Experiência:</strong> ${dados.experiencia_anos} anos</p>` : ''}
-            ${dados.formacao ? `<p style="margin: 5px 0;"><strong>Formação:</strong> ${dados.formacao}</p>` : ''}
-          </div>
-        `;
-      }
-      
-      // Pontuação
-      if (payload.pontuacao_geral) {
-        const pont = payload.pontuacao_geral;
-        reportContent += `
-          <div style="margin-bottom: 20px; padding: 15px; background: #eff6ff; border-left: 4px solid #2563eb; border-radius: 4px;">
-            <h4 style="margin: 0 0 10px 0; color: #1e40af;">⭐ Pontuação</h4>
-            <p style="margin: 5px 0; font-size: 24px; font-weight: bold; color: #2563eb;">${pont.total}/100</p>
-            <p style="margin: 5px 0;"><strong>Classificação:</strong> ${pont.classificacao}</p>
-          </div>
-        `;
-      }
-      
-      // Pontos Principais
-      if (payload.pontos_principais && payload.pontos_principais.length > 0) {
-        reportContent += `
-          <div style="margin-bottom: 20px; padding: 15px; background: #dcfce7; border-left: 4px solid #16a34a; border-radius: 4px;">
-            <h4 style="margin: 0 0 10px 0; color: #166534;">✅ Pontos Fortes</h4>
-            <ul style="margin: 5px 0; padding-left: 20px;">
-              ${payload.pontos_principais.map((p: string) => `<li>${p}</li>`).join('')}
-            </ul>
-          </div>
-        `;
-      }
-      
-      // Pontos de Atenção
-      if (payload.pontos_atencao && payload.pontos_atencao.length > 0) {
-        reportContent += `
-          <div style="margin-bottom: 20px; padding: 15px; background: #fef2f2; border-left: 4px solid #dc2626; border-radius: 4px;">
-            <h4 style="margin: 0 0 10px 0; color: #991b1b;">⚠️ Pontos de Atenção</h4>
-            <ul style="margin: 5px 0; padding-left: 20px;">
-              ${payload.pontos_atencao.map((p: string) => `<li>${p}</li>`).join('')}
-            </ul>
-          </div>
-        `;
-      }
-      
-      // Recomendações
-      if (payload.recomendacoes && payload.recomendacoes.length > 0) {
-        reportContent += `
-          <div style="margin-bottom: 20px; padding: 15px; background: #dbeafe; border-left: 4px solid #2563eb; border-radius: 4px;">
-            <h4 style="margin: 0 0 10px 0; color: #1e40af;">🎯 Recomendações</h4>
-            <ul style="margin: 5px 0; padding-left: 20px;">
-              ${payload.recomendacoes.map((r: string) => `<li>${r}</li>`).join('')}
-            </ul>
-          </div>
-        `;
-      }
-      
+      reportContent += renderDynamicContent(payload, 0, 0);
       reportContent += '</div>';
+      
+      // Se não gerou nenhum conteúdo, usar fallback
+      if (reportContent === '<div style="font-family: sans-serif;"></div>') {
+        console.log('⚠️ Nenhum conteúdo renderizado, usando fallback');
+        reportContent = `<p style="color: #334155;">${JSON.stringify(payload, null, 2).replace(/\n/g, '<br>')}</p>`;
+      }
     } else {
       // Fallback: converter \n para <br>
       reportContent = String(reportContent).replace(/\\n/g, '<br>').replace(/\n/g, '<br>');
@@ -167,10 +227,15 @@ export async function POST(request: NextRequest) {
             }
             .summary {
               background: white;
-              padding: 20px;
-              border-radius: 8px;
-              border-left: 4px solid #667eea;
+              padding: 0;
+              border-radius: 12px;
               margin: 20px 0;
+            }
+            .card {
+              margin-bottom: 16px;
+              border-radius: 12px;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+              overflow: hidden;
             }
             .footer {
               text-align: center;
@@ -188,19 +253,24 @@ export async function POST(request: NextRequest) {
           </div>
           
           <div class="content">
-            <h2>Resultado da Análise</h2>
-            <p>Olá! Seu agente <strong>${agentName}</strong> concluiu o processamento.</p>
+            <div style="background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+              <h2 style="margin: 0 0 10px 0; color: #1e293b;">✨ Resultado da Análise</h2>
+              <p style="margin: 0; color: #64748b;">Seu agente <strong style="color: #667eea;">${agentName}</strong> concluiu o processamento com sucesso!</p>
+            </div>
             
-            ${attachment ? '<p><strong>📎 Anexo:</strong> Documento completo em anexo</p>' : ''}
+            ${attachment ? '<div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 15px 20px; border-radius: 12px; margin-bottom: 20px; border-left: 5px solid #f59e0b;"><p style="margin: 0; color: #92400e;"><strong>📎 Anexo:</strong> Documento completo disponível em anexo</p></div>' : ''}
             
             <div class="summary">
-              <h3>📋 Resumo:</h3>
-              <div>${reportContent}</div>
+              ${reportContent}
             </div>
 
-            <p><strong>📅 Data/Hora:</strong> ${new Date().toLocaleString('pt-BR')}</p>
-            <p><strong>🎯 Agente:</strong> ${agentName}</p>
-            <p><strong>✅ Status:</strong> Processamento concluído com sucesso</p>
+            <div style="background: white; padding: 20px; border-radius: 12px; margin-top: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+              <div style="display: grid; gap: 10px;">
+                <p style="margin: 0; padding: 10px; background: #f8fafc; border-radius: 6px;"><strong style="color: #667eea;">📅 Data/Hora:</strong> <span style="color: #334155;">${new Date().toLocaleString('pt-BR')}</span></p>
+                <p style="margin: 0; padding: 10px; background: #f8fafc; border-radius: 6px;"><strong style="color: #667eea;">🎯 Agente:</strong> <span style="color: #334155;">${agentName}</span></p>
+                <p style="margin: 0; padding: 10px; background: #f0fdf4; border-radius: 6px;"><strong style="color: #16a34a;">✅ Status:</strong> <span style="color: #166534; font-weight: 600;">Processamento concluído</span></p>
+              </div>
+            </div>
           </div>
 
           <div class="footer">
