@@ -28,6 +28,7 @@
     "db:reset": "dotenv -e .env.local -- prisma migrate reset",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate deploy",
+    "prisma:migrate:prod": "dotenv -e .env.production -- prisma migrate deploy",
     "prisma:studio": "prisma studio",
     "docker:build": "docker build -t mvp-agent-builder .",
     "docker:run": "docker run -p 3000:3000 mvp-agent-builder"

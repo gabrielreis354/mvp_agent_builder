@@ -88,6 +88,20 @@ model VerificationToken {
   @@map("verification_tokens")
 }
 
+model PasswordReset {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expires   DateTime
+  used      Boolean  @default(false)
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([token])
+  @@map("password_resets")
+}
+
 model Agent {
   id             String           @id @default(cuid())
   name           String

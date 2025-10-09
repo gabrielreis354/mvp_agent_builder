@@ -25,10 +25,83 @@ import { NodePalette } from "./node-palette";
 import { FriendlyNodePalette } from "./friendly-node-palette";
 import { CustomNode } from "./custom-node";
 import { AgentNode, AgentEdge } from "@/types/agent";
+import { friendlyNodeTemplates, advancedNodeTemplates } from "@/lib/friendly-nodes";
 
 const nodeTypes = {
   customNode: CustomNode,
 };
+
+/**
+ * ✅ SOLUÇÃO: Busca dados padrão do template baseado no tipo de nó
+ * Isso garante que nós arrastados do sidebar venham com prompts e configurações prontas
+ */
+function getDefaultNodeData(nodeType: string): any {
+  // Combinar todos os templates disponíveis
+  const allTemplates = [...friendlyNodeTemplates, ...advancedNodeTemplates];
+  
+  // Buscar template que corresponde ao tipo
+  const template = allTemplates.find(t => t.type === nodeType);
+  
+  // Se encontrou template com defaultData, usar
+  if (template?.defaultData) {
+    return {
+      ...template.defaultData,
+      // Garantir que nodeType está sempre presente
+      nodeType: nodeType as 'input' | 'ai' | 'output' | 'logic' | 'api',
+    };
+  }
+  
+  // Fallback: dados básicos por tipo (caso não encontre template)
+  const fallbackData: Record<string, any> = {
+    input: {
+      label: '📥 Entrada',
+      nodeType: 'input',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          data: { type: 'string', title: 'Dados', description: 'Insira os dados aqui' }
+        }
+      }
+    },
+    ai: {
+      label: '🤖 Analisar com IA',
+      nodeType: 'ai',
+      prompt: 'Analise os dados fornecidos e extraia as informações principais de forma estruturada.',
+      provider: 'anthropic',
+      model: 'claude-3-5-haiku-20241022',
+      temperature: 0.3,
+      maxTokens: 2000
+    },
+    logic: {
+      label: '🔀 Decisão',
+      nodeType: 'logic',
+      logicType: 'condition',
+      condition: 'data.value > 0',
+      conditionDescription: 'Valor maior que zero'
+    },
+    api: {
+      label: '📧 Enviar',
+      nodeType: 'api',
+      apiEndpoint: '/api/send-email',
+      apiMethod: 'POST'
+    },
+    output: {
+      label: '📄 Resultado',
+      nodeType: 'output',
+      outputSchema: {
+        type: 'object',
+        properties: {
+          result: { type: 'string', title: 'Resultado' }
+        }
+      }
+    }
+  };
+  
+  return fallbackData[nodeType] || {
+    label: `${nodeType.charAt(0).toUpperCase() + nodeType.slice(1)} Node`,
+    nodeType: nodeType as 'input' | 'ai' | 'output' | 'logic' | 'api',
+  };
+}
 
 interface VisualCanvasProps {
   onSave: (nodes: AgentNode[], edges: AgentEdge[]) => void
@@ -527,28 +600,20 @@ Substitua todos os placeholders [...] com os dados reais extraídos da folha de 
         y: event.clientY - reactFlowBounds.top,
       });
 
+      // ✅ SOLUÇÃO: Buscar dados padrão do template
+      const defaultNodeData = getDefaultNodeData(type);
+
       const newNode: Node = {
         id: `${type}-${Date.now()}`,
         type: "customNode",
         position,
         data: {
-          label: `${type.charAt(0).toUpperCase() + type.slice(1)} Node`,
-          prompt: type === 'ai' ? 'Digite seu prompt aqui...' : undefined,
-          provider: type === 'ai' ? 'openai' : undefined,
-          model: type === 'ai' ? 'gpt-3.5-turbo' : undefined,
-          temperature: type === 'ai' ? 0.7 : undefined,
-          maxTokens: type === 'ai' ? 1000 : undefined,
+          ...defaultNodeData,
+          nodeType: type as 'input' | 'ai' | 'output' | 'logic' | 'api',
         },
       }
 
-      setNodes((nds) => nds.concat({
-        ...newNode,
-        type: 'customNode',
-        data: {
-          ...newNode.data,
-          nodeType: type as 'input' | 'ai' | 'output' | 'logic' | 'api',
-        }
-      } as AgentNode))
+      setNodes((nds) => nds.concat(newNode as AgentNode))
     },
     [reactFlowInstance, setNodes]
   );
