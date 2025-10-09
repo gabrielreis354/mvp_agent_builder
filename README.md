@@ -4,6 +4,21 @@
 
 Plataforma colaborativa para criar, executar e compartilhar agentes de IA que automatizam processos de RH. Interface visual drag-and-drop, multi-usuário, multi-empresa.
 
+**Versão:** 2.0.0 | **Última Atualização:** 09/10/2025
+
+---
+
+## 🎉 NOVIDADES (v2.0.0 - 09/10/2025)
+
+- ✅ **Email Universal**: Renderização dinâmica de qualquer estrutura JSON
+- ✅ **Sistema de Convites Seguro**: Validação completa com auditoria
+- ✅ **Compartilhamento de Agentes**: Torne agentes públicos na organização
+- ✅ **Fallback de IA**: Anthropic → OpenAI → Google automático
+- ✅ **Multi-Tenancy Auditado**: Isolamento total entre organizações (9.5/10)
+- ✅ **Documentação Completa**: 12 novos documentos técnicos
+
+📖 **Ver detalhes:** [`RESUMO_FINAL_IMPLEMENTACOES_09_10.md`](RESUMO_FINAL_IMPLEMENTACOES_09_10.md)
+
 ---
 
 ## 🎯 O Que É

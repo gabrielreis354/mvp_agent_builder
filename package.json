@@ -12,6 +12,7 @@
     "clean": "rimraf .next .turbo node_modules/.cache",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
+    "migrate:agents": "tsx scripts/fix-agent-organizations.ts",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",

@@ -27,7 +27,16 @@ async function migrateAgentOrganizations() {
           }
         }
       }
-    });
+    }) as Array<{
+      id: string;
+      name: string;
+      organizationId: string | null;
+      user: {
+        id: string;
+        email: string;
+        organizationId: string | null;
+      };
+    }>;
 
     console.log(`📊 Total de agentes encontrados: ${agents.length}\n`);
 
@@ -89,13 +98,16 @@ async function migrateAgentOrganizations() {
     console.log('🔍 Verificação Final');
     console.log('='.repeat(60));
 
-    const agentsWithoutOrg = await prisma.agent.count({
-      where: { organizationId: null }
-    });
+    // Verificar agentes sem organizationId usando raw query
+    const agentsCheck = await prisma.$queryRaw<Array<{count: bigint}>>`
+      SELECT COUNT(*) as count FROM agents WHERE "organizationId" IS NULL
+    `;
+    const agentsWithoutOrg = Number(agentsCheck[0].count);
 
-    const usersWithoutOrg = await prisma.user.count({
-      where: { organizationId: null }
-    });
+    const usersCheck = await prisma.$queryRaw<Array<{count: bigint}>>`
+      SELECT COUNT(*) as count FROM users WHERE "organizationId" IS NULL
+    `;
+    const usersWithoutOrg = Number(usersCheck[0].count);
 
     console.log(`\n📊 Agentes sem organizationId: ${agentsWithoutOrg}`);
     console.log(`📊 Usuários sem organizationId: ${usersWithoutOrg}`);
