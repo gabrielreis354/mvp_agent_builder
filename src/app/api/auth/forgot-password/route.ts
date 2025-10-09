@@ -212,6 +212,15 @@ Este é um email automático, por favor não responda.
 
   } catch (error) {
     console.error('[FORGOT-PASSWORD] Erro:', error);
+    
+    // Verificar se é erro de tabela não encontrada
+    if (error instanceof Error && error.message.includes('passwordReset')) {
+      return NextResponse.json(
+        { error: 'Sistema de reset de senha não está configurado. Entre em contato com o suporte.' },
+        { status: 503 }
+      );
+    }
+    
     return NextResponse.json(
       { error: 'Erro ao processar solicitação' },
       { status: 500 }

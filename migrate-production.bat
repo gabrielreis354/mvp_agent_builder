@@ -30,13 +30,24 @@ echo.
 
 REM Gerar Prisma Client (se necessario)
 echo [1/2] Gerando Prisma Client...
-npx dotenv -e .env.production -- prisma generate
+call npx dotenv -e .env.production -- prisma generate
+if errorlevel 1 (
+    echo ERRO ao gerar Prisma Client!
+    pause
+    exit /b 1
+)
 
 echo.
 echo [2/2] Aplicando migrations em PRODUCAO...
 echo.
 echo ATENCAO: Aplicando em PRODUCAO agora!
-npx dotenv -e .env.production -- prisma migrate deploy
+echo.
+call npx dotenv -e .env.production -- prisma migrate deploy
+if errorlevel 1 (
+    echo ERRO ao aplicar migrations!
+    pause
+    exit /b 1
+)
 
 echo.
 echo ========================================
