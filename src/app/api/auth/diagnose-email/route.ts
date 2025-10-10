@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/database/prisma';
 
+// Forçar runtime dinâmico (não fazer build estático)
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 /**
  * API de Diagnóstico - Verificar Email no Sistema
  * 
