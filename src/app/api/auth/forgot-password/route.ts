@@ -211,18 +211,13 @@ Este é um email automático, por favor não responda.
     });
 
   } catch (error) {
-    console.error('[FORGOT-PASSWORD] Erro:', error);
-    
-    // Verificar se é erro de tabela não encontrada
-    if (error instanceof Error && error.message.includes('passwordReset')) {
-      return NextResponse.json(
-        { error: 'Sistema de reset de senha não está configurado. Entre em contato com o suporte.' },
-        { status: 503 }
-      );
-    }
+    console.error('[FORGOT-PASSWORD] Erro completo:', error);
     
     return NextResponse.json(
-      { error: 'Erro ao processar solicitação' },
+      { 
+        error: 'Erro ao processar solicitação',
+        details: error instanceof Error ? error.message : 'Erro desconhecido'
+      },
       { status: 500 }
     );
   }
