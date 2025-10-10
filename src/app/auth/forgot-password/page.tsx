@@ -6,21 +6,25 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Brain, ArrowLeft, Mail, CheckCircle } from 'lucide-react';
+import { Loader2, Brain, ArrowLeft, Mail, CheckCircle, RefreshCw, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isResending, setIsResending] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [remainingAttempts, setRemainingAttempts] = useState<number | null>(null);
+  const [rateLimitError, setRateLimitError] = useState('');
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
+    setRateLimitError('');
 
     try {
       const response = await fetch('/api/auth/forgot-password', {
@@ -32,14 +36,54 @@ export default function ForgotPasswordPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || 'Erro ao enviar email');
+        if (response.status === 429) {
+          setRateLimitError(data.message || 'Limite de tentativas excedido');
+          setRemainingAttempts(data.remainingAttempts || 0);
+        } else {
+          setError(data.error || 'Erro ao enviar email');
+        }
       } else {
         setSuccess(true);
+        setRemainingAttempts(data.remainingAttempts);
       }
     } catch (err) {
       setError('Erro ao processar solicitação. Tente novamente.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    setIsResending(true);
+    setError('');
+    setRateLimitError('');
+
+    try {
+      const response = await fetch('/api/auth/resend-reset-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          setRateLimitError(data.message || 'Limite de tentativas excedido');
+          setRemainingAttempts(data.remainingAttempts || 0);
+        } else {
+          setError(data.error || 'Erro ao reenviar email');
+        }
+      } else {
+        setRemainingAttempts(data.remainingAttempts);
+        // Mostrar feedback visual de sucesso
+        setError('');
+        setRateLimitError('');
+      }
+    } catch (err) {
+      setError('Erro ao reenviar email. Tente novamente.');
+    } finally {
+      setIsResending(false);
     }
   };
 
@@ -90,9 +134,45 @@ export default function ForgotPasswordPage() {
                 <p className="text-gray-400 text-xs">
                   Não esqueça de verificar sua caixa de spam.
                 </p>
+                
+                {/* Rate limit info */}
+                {remainingAttempts !== null && (
+                  <div className="flex items-center justify-center gap-2 text-xs text-gray-400 pt-2">
+                    <AlertTriangle className="h-3 w-3" />
+                    <span>{remainingAttempts} tentativa(s) restante(s) nesta hora</span>
+                  </div>
+                )}
               </div>
 
+              {/* Rate limit error */}
+              {rateLimitError && (
+                <Alert variant="destructive" className="mt-4">
+                  <AlertDescription>{rateLimitError}</AlertDescription>
+                </Alert>
+              )}
+
               <div className="pt-4 space-y-3">
+                {/* Botão Reenviar Email */}
+                <motion.button
+                  onClick={handleResend}
+                  disabled={isResending || remainingAttempts === 0}
+                  whileHover={{ scale: remainingAttempts === 0 ? 1 : 1.02 }}
+                  whileTap={{ scale: remainingAttempts === 0 ? 1 : 0.98 }}
+                  className="w-full px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg font-semibold text-white flex items-center justify-center gap-2 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isResending ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      Reenviando...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="h-5 w-5" />
+                      Reenviar Email
+                    </>
+                  )}
+                </motion.button>
+                
                 <Button
                   onClick={() => router.push('/auth/signin')}
                   className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:shadow-lg"
@@ -105,6 +185,8 @@ export default function ForgotPasswordPage() {
                   onClick={() => {
                     setSuccess(false);
                     setEmail('');
+                    setRemainingAttempts(null);
+                    setRateLimitError('');
                   }}
                   className="w-full text-sm text-gray-300 hover:text-white transition-colors"
                 >
@@ -117,6 +199,12 @@ export default function ForgotPasswordPage() {
               {error && (
                 <Alert variant="destructive" className="mb-6">
                   <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+              
+              {rateLimitError && (
+                <Alert variant="destructive" className="mb-6">
+                  <AlertDescription>{rateLimitError}</AlertDescription>
                 </Alert>
               )}
 
