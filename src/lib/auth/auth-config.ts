@@ -119,20 +119,33 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
 
-    async signIn({ user, account }) {
+    async signIn({ user, account, profile }) {
+      console.log('[AUTH] SignIn callback iniciado', {
+        provider: account?.provider,
+        email: user?.email,
+        hasProfile: !!profile
+      });
+
       if (account?.provider === 'credentials') {
+        console.log('[AUTH] Login com credenciais - permitido');
         return true;
       }
 
       // Handle OAuth sign-in (e.g., Google, GitHub)
       try {
-        if (!user.email) return false;
+        if (!user.email) {
+          console.error('[AUTH] OAuth falhou - email não fornecido');
+          return false;
+        }
 
+        console.log('[AUTH] Verificando usuário existente:', user.email);
         const existingUser = await prisma.user.findUnique({
           where: { email: user.email },
         });
 
         if (!existingUser) {
+          console.log('[AUTH] Usuário não existe - criando novo usuário e organização');
+          
           // If the user does not exist, create a new organization and user.
           await prisma.$transaction(async (tx) => {
             const organization = await tx.organization.create({
@@ -141,7 +154,9 @@ export const authOptions: NextAuthOptions = {
               },
             });
 
-            await tx.user.create({
+            console.log('[AUTH] Organização criada:', organization.id);
+
+            const newUser = await tx.user.create({
               data: {
                 email: user.email!,
                 name: user.name,
@@ -151,12 +166,57 @@ export const authOptions: NextAuthOptions = {
                 emailVerified: new Date(),
               },
             });
+
+            console.log('[AUTH] Novo usuário criado:', newUser.id);
           });
+        } else {
+          console.log('[AUTH] Usuário existente encontrado:', existingUser.id);
+          
+          // CORREÇÃO: Verificar se account OAuth existe
+          if (account && account.provider !== 'credentials') {
+            console.log('[AUTH] Verificando account OAuth para provider:', account.provider);
+            
+            const existingAccount = await prisma.account.findFirst({
+              where: {
+                userId: existingUser.id,
+                provider: account.provider,
+              }
+            });
+            
+            if (!existingAccount) {
+              console.log('[AUTH] ⚠️ Account OAuth não existe - criando...');
+              
+              // Criar account OAuth manualmente
+              await prisma.account.create({
+                data: {
+                  userId: existingUser.id,
+                  type: account.type,
+                  provider: account.provider,
+                  providerAccountId: account.providerAccountId,
+                  refresh_token: account.refresh_token,
+                  access_token: account.access_token,
+                  expires_at: account.expires_at,
+                  token_type: account.token_type,
+                  scope: account.scope,
+                  id_token: account.id_token,
+                  session_state: account.session_state,
+                }
+              });
+              
+              console.log('[AUTH] ✅ Account OAuth criado com sucesso');
+            } else {
+              console.log('[AUTH] Account OAuth já existe:', existingAccount.id);
+            }
+          }
         }
 
+        console.log('[AUTH] SignIn bem-sucedido para:', user.email);
         return true;
       } catch (error) {
-        console.error("OAuth sign-in error:", error);
+        console.error('[AUTH] ❌ Erro crítico no OAuth sign-in:', error);
+        console.error('[AUTH] Stack trace:', error instanceof Error ? error.stack : 'N/A');
+        
+        // Retornar false para bloquear login em caso de erro
         return false;
       }
     },
@@ -166,4 +226,19 @@ export const authOptions: NextAuthOptions = {
     error: '/auth/error',
   },
   secret: process.env.NEXTAUTH_SECRET,
+  debug: process.env.NODE_ENV === 'development',
+  events: {
+    async signIn(message) {
+      console.log('[AUTH EVENT] signIn:', message.user.email);
+    },
+    async signOut(message) {
+      console.log('[AUTH EVENT] signOut');
+    },
+    async createUser(message) {
+      console.log('[AUTH EVENT] createUser:', message.user.email);
+    },
+    async session(message) {
+      console.log('[AUTH EVENT] session:', message.session.user?.email);
+    },
+  },
 };

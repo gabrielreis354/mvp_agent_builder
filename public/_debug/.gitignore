@@ -1,0 +1,8 @@
+# Páginas HTML de debug - não devem ir para produção
+# Se precisar em dev, remova este arquivo temporariamente
+
+# Ignorar todas as páginas HTML
+*.html
+
+# Manter apenas o README
+!README.md

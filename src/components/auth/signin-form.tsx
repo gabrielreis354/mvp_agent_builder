@@ -20,6 +20,45 @@ function SignInFormContent() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/builder';
 
+  // Detectar retorno do OAuth
+  useEffect(() => {
+    const oauthError = searchParams.get('error');
+    const oauthAttempt = typeof window !== 'undefined' 
+      ? sessionStorage.getItem('oauth_attempt') 
+      : null;
+
+    if (oauthError) {
+      // Log apenas em desenvolvimento
+      if (process.env.NODE_ENV === 'development') {
+        console.error('[SIGNIN] Erro OAuth:', oauthError);
+      }
+      
+      const errorMessages: Record<string, string> = {
+        'OAuthSignin': 'Erro ao iniciar login com Google',
+        'OAuthCallback': 'Erro ao processar resposta do Google',
+        'OAuthCreateAccount': 'Erro ao criar conta',
+        'OAuthAccountNotLinked': 'Este email já está cadastrado com outro método',
+        'AccessDenied': 'Acesso negado pelo Google',
+      };
+      
+      setError(errorMessages[oauthError] || `Erro: ${oauthError}`);
+      sessionStorage.removeItem('oauth_attempt');
+    } else if (oauthAttempt) {
+      // Verificar se sessão foi criada
+      getSession().then(session => {
+        if (session) {
+          sessionStorage.removeItem('oauth_attempt');
+          
+          // Redirecionar para callback URL
+          const attempt = JSON.parse(oauthAttempt);
+          router.push(attempt.callbackUrl || '/builder');
+        } else {
+          sessionStorage.removeItem('oauth_attempt');
+        }
+      });
+    }
+  }, [searchParams, router]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -52,9 +91,30 @@ function SignInFormContent() {
     setError('');
 
     try {
-      await signIn(provider, { callbackUrl });
+      // Salvar estado antes do redirect
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('oauth_attempt', JSON.stringify({
+          provider,
+          callbackUrl,
+          timestamp: new Date().toISOString()
+        }));
+      }
+      
+      // Com redirect: true, esta função NÃO retorna - ela redireciona
+      await signIn(provider, { 
+        callbackUrl,
+        redirect: true,
+      });
+      
+      // Este código só executa se NÃO redirecionar (erro)
+      setError('Não foi possível iniciar o login. Tente novamente.');
+      setIsLoading(false);
+      
     } catch (err) {
-      setError('Erro ao fazer login com Google');
+      if (process.env.NODE_ENV === 'development') {
+        console.error('[SIGNIN] Exceção OAuth:', err);
+      }
+      setError('Erro ao fazer login com Google. Tente novamente.');
       setIsLoading(false);
     }
   };

@@ -1,0 +1,8 @@
+# Ferramentas de debug - não devem ir para produção
+# Se precisar em dev, remova este arquivo temporariamente
+
+# Ignorar todas as rotas de debug
+*/route.ts
+
+# Manter apenas o README
+!README.md
