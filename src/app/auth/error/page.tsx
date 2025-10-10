@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Brain, AlertCircle, ArrowLeft, RefreshCw } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Suspense } from 'react';
 
 const errorMessages: Record<string, { title: string; description: string; solution: string[] }> = {
   Configuration: {
@@ -119,7 +120,7 @@ const errorMessages: Record<string, { title: string; description: string; soluti
   },
 };
 
-export default function AuthErrorPage() {
+function AuthErrorContent() {
   const searchParams = useSearchParams();
   const error = searchParams?.get('error') || 'Default';
   
@@ -231,5 +232,20 @@ export default function AuthErrorPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AuthErrorPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+        <div className="text-white text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+          <p>Carregando...</p>
+        </div>
+      </div>
+    }>
+      <AuthErrorContent />
+    </Suspense>
   );
 }
