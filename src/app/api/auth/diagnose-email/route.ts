@@ -11,8 +11,7 @@ import { prisma } from '@/lib/database/prisma';
  */
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const emailToTest = searchParams.get('email');
+    const emailToTest = request.nextUrl.searchParams.get('email');
     
     if (!emailToTest) {
       return NextResponse.json({
