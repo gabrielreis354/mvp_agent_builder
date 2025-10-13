@@ -17,6 +17,7 @@ interface ReportCardProps {
 
 export function ReportCard({ report, viewMode, onDelete }: ReportCardProps) {
   const [showPreview, setShowPreview] = useState(false)
+  const [isDownloading, setIsDownloading] = useState(false)
   
   const typeColors = {
     contract: 'from-blue-500 to-blue-600',
@@ -41,17 +42,43 @@ export function ReportCard({ report, viewMode, onDelete }: ReportCardProps) {
     processing: <AlertCircle className="h-4 w-4 text-blue-500" />
   }
 
-  const handleDownload = () => {
-    if (report.result.htmlReport) {
-      const blob = new Blob([report.result.htmlReport], { type: 'text/html' })
+  const handleDownload = async () => {
+    if (isDownloading) return
+    
+    setIsDownloading(true)
+    try {
+      // A API espera o resultado completo (objeto JSON), não HTML
+      // O microserviço Python vai gerar o PDF a partir dos dados estruturados
+      const response = await fetch('/api/generate-document', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: JSON.stringify(report.result), // Enviar resultado como JSON string
+          fileName: report.fileName || `relatorio-${report.id}`,
+          format: 'pdf',
+          download: true
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || 'Erro ao gerar PDF')
+      }
+
+      const blob = await response.blob()
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = `relatorio-${report.id}.html`
+      link.download = `${report.fileName || `relatorio-${report.id}`}.pdf`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
       URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Erro ao baixar relatório:', error)
+      alert('Erro ao gerar PDF. Tente novamente.')
+    } finally {
+      setIsDownloading(false)
     }
   }
 
@@ -168,10 +195,11 @@ export function ReportCard({ report, viewMode, onDelete }: ReportCardProps) {
               onClick={handleDownload}
               size="sm"
               variant="ghost"
-              className="text-green-400 hover:text-green-300 hover:bg-green-600/20"
-              title="Baixar"
+              disabled={isDownloading}
+              className="text-green-400 hover:text-green-300 hover:bg-green-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              title={isDownloading ? "Gerando PDF..." : "Baixar PDF"}
             >
-              <Download className="h-4 w-4" />
+              <Download className={`h-4 w-4 ${isDownloading ? 'animate-pulse' : ''}`} />
             </Button>
             <Button
               onClick={() => onDelete(report.id)}
