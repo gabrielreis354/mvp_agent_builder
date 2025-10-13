@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from '@/components/auth/auth-provider';
 import { ThemeProvider } from '@/components/theme-provider';
 import { ExecutionModalProvider } from '@/components/agent-builder/execution-modal-provider';
+import { Hotjar } from '@/components/analytics/hotjar';
 
 import { Inter } from 'next/font/google';
 
@@ -41,6 +42,10 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  // Hotjar configuration
+  const hotjarId = process.env.NEXT_PUBLIC_HOTJAR_ID;
+  const hotjarVersion = process.env.NEXT_PUBLIC_HOTJAR_SNIPPET_VERSION || '6';
+
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <body className={inter.className} suppressHydrationWarning>
@@ -56,6 +61,11 @@ export default function RootLayout({
             <ExecutionModalProvider />
           </AuthProvider>
         </ThemeProvider>
+        
+        {/* Hotjar Analytics - apenas em produção */}
+        {hotjarId && process.env.NODE_ENV === 'production' && (
+          <Hotjar hjid={hotjarId} hjsv={hotjarVersion} />
+        )}
       </body>
     </html>
   )
