@@ -64,7 +64,11 @@ export default function RootLayout({
         
         {/* Hotjar Analytics - apenas em produção */}
         {hotjarId && process.env.NODE_ENV === 'production' && (
-          <Hotjar hjid={hotjarId} hjsv={hotjarVersion} />
+          <Hotjar 
+            hjid={hotjarId} 
+            hjsv={hotjarVersion}
+            disableFeedback={true} // Desabilita questionários automáticos
+          />
         )}
       </body>
     </html>

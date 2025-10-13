@@ -130,16 +130,19 @@ docs/
 ## 🎓 Fluxo de Aprendizado Recomendado
 
 ### **Dia 1 - Fundamentos:**
+
 1. Leia [README.md](../README.md) - Visão geral (30 min)
 2. Leia [DEVELOPMENT_GUIDELINES.md](DEVELOPMENT_GUIDELINES.md) - Princípios (60 min)
 3. Configure ambiente local seguindo README (30 min)
 
 ### **Dia 2 - Arquitetura:**
+
 1. [AUDITORIA_MULTI_TENANCY.md](../AUDITORIA_MULTI_TENANCY.md) - Isolamento (30 min)
 2. [AUDITORIA_SISTEMA_CONVITES.md](../AUDITORIA_SISTEMA_CONVITES.md) - Convites (20 min)
 3. [RENDERIZADOR_DINAMICO_EMAIL.md](../RENDERIZADOR_DINAMICO_EMAIL.md) - Emails (20 min)
 
 ### **Dia 3 - Desenvolvimento:**
+
 1. [DESENVOLVIMENTO.md](DESENVOLVIMENTO.md) - Guia prático (30 min)
 2. [development/TESTING_GUIDE.md](development/TESTING_GUIDE.md) - Testes (20 min)
 3. Comece a codificar seguindo os padrões
@@ -219,12 +222,14 @@ npm run test:coverage       # Cobertura de testes
 ## 🗺️ Roadmap da Documentação
 
 ### **Q4 2025:**
+
 - [ ] Documentação completa de APIs (OpenAPI/Swagger)
 - [ ] Guia de integrações externas
 - [ ] Tutoriais em vídeo
 - [ ] Exemplos práticos de uso
 
 ### **Q1 2026:**
+
 - [ ] Documentação de arquitetura detalhada
 - [ ] Guia de troubleshooting avançado
 - [ ] Best practices por caso de uso

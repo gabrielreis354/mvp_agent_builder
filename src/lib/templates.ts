@@ -4,11 +4,11 @@ export const agentTemplates: AgentTemplate[] = [
   {
     id: 'contract-analyzer',
     name: 'Analisador de Contratos RH',
-    description: 'Analisa contratos trabalhistas, valida conformidade com CLT, gera relatórios em PDF e envia por email automaticamente.',
+    description: 'Analisa contratos trabalhistas, valida conformidade com CLT e gera relatórios profissionais em PDF.',
     category: 'RH & Jurídico',
-    useCase: 'Automatizar análise completa de contratos de admissão com relatórios e notificações',
+    useCase: 'Automatizar análise completa de contratos de admissão com relatórios detalhados',
     difficulty: 'intermediate',
-    estimatedTime: '8-12 min',
+    estimatedTime: '3-5 min',
     nodes: [
       {
         id: 'input-1',
@@ -20,11 +20,9 @@ export const agentTemplates: AgentTemplate[] = [
           inputSchema: {
             type: 'object',
             properties: {
-              file: { type: 'string', format: 'binary', description: 'Arquivo PDF do contrato' },
-              email_gestor: { type: 'string', format: 'email', description: 'Email do gestor para notificação' },
-              departamento: { type: 'string', description: 'Departamento do funcionário' }
+              file: { type: 'string', format: 'binary', description: 'Arquivo PDF do contrato' }
             },
-            required: ['file', 'email_gestor']
+            required: ['file']
           }
         }
       },
@@ -36,134 +34,28 @@ export const agentTemplates: AgentTemplate[] = [
           label: 'Análise GPT-4',
           nodeType: 'ai',
           provider: 'openai',
-          model: 'gpt-4',
-          prompt: `Analise este contrato trabalhista brasileiro e gere um relatório HTML profissional completo seguindo este formato EXATO:
+          model: 'gpt-4o-mini',
+          temperature: 0.2,
+          maxTokens: 2500,
+          prompt: `Analise cuidadosamente o contrato de trabalho fornecido e forneça uma análise jurídica completa e detalhada em formato de relatório profissional.
 
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <title>Análise de Contrato Trabalhista</title>
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
-        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .header { background: linear-gradient(135deg, #2c3e50, #34495e); color: white; padding: 30px; border-radius: 8px; text-align: center; margin-bottom: 30px; }
-        .section { margin: 25px 0; padding: 20px; border-left: 4px solid #3498db; background: #f8f9fa; border-radius: 0 8px 8px 0; }
-        .section h3 { color: #2c3e50; margin: 0 0 15px 0; font-size: 1.3em; }
-        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0; }
-        .info-card { background: white; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0; }
-        .info-card h4 { color: #34495e; margin: 0 0 10px 0; border-bottom: 2px solid #3498db; padding-bottom: 5px; }
-        .status-ok { color: #27ae60; font-weight: bold; }
-        .status-warning { color: #f39c12; font-weight: bold; }
-        .status-error { color: #e74c3c; font-weight: bold; }
-        ul { padding-left: 20px; }
-        li { margin: 5px 0; }
-        .footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 2px solid #e5e7eb; color: #6b7280; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>📋 Análise de Contrato Trabalhista</h1>
-            <p>Relatório de Conformidade CLT - ${new Date().toLocaleDateString('pt-BR')}</p>
-        </div>
+FOQUE EM:
+- Identificação das partes (empregador e empregado)
+- Dados contratuais principais (salário, cargo, jornada)
+- Conformidade com a CLT e legislação trabalhista
+- Cláusulas importantes e potenciais riscos
+- Recomendações jurídicas
 
-        <div class="section">
-            <h3>👤 DADOS DO FUNCIONÁRIO</h3>
-            <div class="info-grid">
-                <div class="info-card">
-                    <h4>Informações Pessoais</h4>
-                    <p><strong>Nome:</strong> [EXTRAIR DO CONTRATO]</p>
-                    <p><strong>CPF:</strong> [EXTRAIR DO CONTRATO]</p>
-                    <p><strong>RG:</strong> [EXTRAIR DO CONTRATO]</p>
-                    <p><strong>Endereço:</strong> [EXTRAIR DO CONTRATO]</p>
-                </div>
-                <div class="info-card">
-                    <h4>Dados Profissionais</h4>
-                    <p><strong>Cargo:</strong> [EXTRAIR DO CONTRATO]</p>
-                    <p><strong>Salário:</strong> [EXTRAIR DO CONTRATO]</p>
-                    <p><strong>Data de Admissão:</strong> [EXTRAIR DO CONTRATO]</p>
-                    <p><strong>Período de Experiência:</strong> [EXTRAIR DO CONTRATO]</p>
-                </div>
-            </div>
-        </div>
+ESTRUTURE SUA ANÁLISE COM:
+- Resumo executivo da análise
+- Dados principais extraídos
+- Pontos importantes identificados
+- Riscos ou problemas detectados
+- Recomendações jurídicas
+- Avaliação de conformidade
+- Conclusão final
 
-        <div class="section">
-            <h3>🏢 DADOS DA EMPRESA</h3>
-            <div class="info-card">
-                <p><strong>Razão Social:</strong> [EXTRAIR DO CONTRATO]</p>
-                <p><strong>CNPJ:</strong> [EXTRAIR DO CONTRATO]</p>
-                <p><strong>Endereço:</strong> [EXTRAIR DO CONTRATO]</p>
-            </div>
-        </div>
-
-        <div class="section">
-            <h3>⏰ JORNADA DE TRABALHO</h3>
-            <div class="info-card">
-                <p><strong>Carga Horária:</strong> [EXTRAIR JORNADA]</p>
-                <p><strong>Horário:</strong> [EXTRAIR HORÁRIOS]</p>
-                <p><strong>Intervalo:</strong> [EXTRAIR INTERVALOS]</p>
-            </div>
-        </div>
-
-        <div class="section">
-            <h3>💰 REMUNERAÇÃO E BENEFÍCIOS</h3>
-            <div class="info-card">
-                <h4>Remuneração</h4>
-                <ul>
-                    <li>[LISTAR COMPONENTES SALARIAIS]</li>
-                </ul>
-                <h4>Benefícios</h4>
-                <ul>
-                    <li>[LISTAR BENEFÍCIOS OFERECIDOS]</li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="section">
-            <h3>⚖️ CONFORMIDADE COM A CLT</h3>
-            <div class="info-card">
-                <h4>Cláusulas Obrigatórias</h4>
-                <ul>
-                    <li class="status-ok">✅ [VERIFICAR CLÁUSULAS PRESENTES]</li>
-                    <li class="status-warning">⚠️ [VERIFICAR CLÁUSULAS COM ATENÇÃO]</li>
-                    <li class="status-error">❌ [VERIFICAR CLÁUSULAS AUSENTES]</li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="section">
-            <h3>🚨 ANÁLISE DE RISCOS</h3>
-            <div class="info-card">
-                <h4>Irregularidades Identificadas</h4>
-                <ul>
-                    <li>[LISTAR POSSÍVEIS IRREGULARIDADES]</li>
-                </ul>
-                <h4>Recomendações</h4>
-                <ul>
-                    <li>[LISTAR RECOMENDAÇÕES DE CORREÇÃO]</li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="section">
-            <h3>📊 RESUMO EXECUTIVO</h3>
-            <div class="info-card">
-                <p><strong>Status Geral:</strong> <span class="[CLASSE_STATUS]">[STATUS_CONFORMIDADE]</span></p>
-                <p><strong>Pontos Críticos:</strong> [NÚMERO] identificados</p>
-                <p><strong>Recomendação:</strong> [RECOMENDAÇÃO_FINAL]</p>
-            </div>
-        </div>
-
-        <div class="footer">
-            <p>📄 Relatório gerado automaticamente pelo AutomateAI</p>
-            <p>Sistema de Análise Jurídica para RH - ${new Date().toLocaleString('pt-BR')}</p>
-        </div>
-    </div>
-</body>
-</html>
-
-IMPORTANTE: Substitua TODOS os campos entre colchetes [CAMPO] pelos dados reais extraídos do contrato. Use as classes CSS adequadas (status-ok, status-warning, status-error) para indicar conformidade.`
+Seja preciso, detalhado e baseie-se apenas nas informações reais do documento.`
         }
       },
       {
@@ -176,40 +68,18 @@ IMPORTANTE: Substitua TODOS os campos entre colchetes [CAMPO] pelos dados reais 
         }
       },
       {
-        id: 'ai-2',
-        type: 'customNode',
-        position: { x: 700, y: 50 },
-        data: {
-          label: 'Gerador Relatório',
-          nodeType: 'ai',
-          provider: 'openai',
-          model: 'gpt-3.5-turbo',
-          prompt: 'Com base na análise do contrato, gere um relatório executivo em formato HTML para conversão em PDF contendo: resumo executivo, dados principais, conformidade legal, recomendações e próximos passos. Use formatação profissional adequada para RH.'
-        }
-      },
-      {
-        id: 'api-1',
-        type: 'customNode',
-        position: { x: 700, y: 150 },
-        data: { 
-          label: 'Envio Email',
-          nodeType: 'api'
-        }
-      },
-      {
         id: 'output-1',
         type: 'customNode',
-        position: { x: 900, y: 100 },
+        position: { x: 700, y: 100 },
         data: { 
-          label: 'Relatório PDF + Notificação',
+          label: 'Relatório Jurídico',
           nodeType: 'output',
           outputSchema: {
             type: 'object',
             properties: {
               relatorio_pdf: { type: 'string', format: 'binary', description: 'Relatório em PDF' },
               dados_extraidos: { type: 'object', description: 'Dados estruturados do contrato' },
-              status_conformidade: { type: 'string', enum: ['conforme', 'nao_conforme', 'requer_revisao'] },
-              email_enviado: { type: 'boolean', description: 'Status do envio do email' }
+              status_conformidade: { type: 'string', enum: ['conforme', 'nao_conforme', 'requer_revisao'] }
             }
           }
         }
@@ -218,13 +88,10 @@ IMPORTANTE: Substitua TODOS os campos entre colchetes [CAMPO] pelos dados reais 
     edges: [
       { id: 'e1-2', source: 'input-1', target: 'ai-1' },
       { id: 'e2-3', source: 'ai-1', target: 'logic-1' },
-      { id: 'e3-4', source: 'logic-1', target: 'ai-2' },
-      { id: 'e3-5', source: 'logic-1', target: 'api-1' },
-      { id: 'e4-6', source: 'ai-2', target: 'output-1' },
-      { id: 'e5-6', source: 'api-1', target: 'output-1' }
+      { id: 'e3-4', source: 'logic-1', target: 'output-1' }
     ],
-    tags: ['contratos', 'rh', 'juridico', 'claude', 'anthropic', 'clt', 'pdf', 'email'],
-    preview: 'Input (PDF) → AI (Análise) → Logic (Validação CLT) → AI (Relatório) + API (Email) → Output (PDF + Notificação)'
+    tags: ['contratos', 'rh', 'juridico', 'gpt-4', 'clt', 'pdf'],
+    preview: 'Input (PDF) → AI (Análise) → Logic (Validação CLT) → Output (Relatório PDF)'
   },
   {
     id: 'expense-analyzer',

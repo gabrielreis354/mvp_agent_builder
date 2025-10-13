@@ -243,7 +243,7 @@ Seja objetivo, imparcial e baseie-se apenas nas informações presentes no docum
                 model: "gpt-4o-mini",
                 temperature: 0.2,
                 maxTokens: 2500,
-                prompt: `Analise cuidadosamente o contrato de trabalho fornecido e forneça uma análise jurídica completa e detalhada.
+                prompt: `Analise cuidadosamente o contrato de trabalho fornecido e forneça uma análise jurídica completa e detalhada em formato de relatório profissional.
 
 FOQUE EM:
 - Identificação das partes (empregador e empregado)
