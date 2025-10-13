@@ -111,11 +111,16 @@ export async function POST(request: NextRequest) {
                       </p>
                       
                       <p style="margin: 0 0 20px; color: #374151; font-size: 16px; line-height: 1.6;">
-                        Recebemos uma solicitação para redefinir a senha da sua conta <strong>SimplifiqueIA</strong>.
+                        Você solicitou a redefinição de senha da sua conta na plataforma <strong>SimplifiqueIA</strong>.
+                      </p>
+                      
+                      <p style="margin: 0 0 20px; color: #374151; font-size: 16px; line-height: 1.6;">
+                        A SimplifiqueIA é uma plataforma de automação inteligente para processos de RH, 
+                        desenvolvida para otimizar análises de contratos, currículos e documentos empresariais.
                       </p>
                       
                       <p style="margin: 0 0 30px; color: #374151; font-size: 16px; line-height: 1.6;">
-                        Clique no botão abaixo para criar uma nova senha:
+                        Para criar uma nova senha de acesso, clique no botão abaixo:
                       </p>
                       
                       <!-- Button -->
@@ -161,8 +166,11 @@ export async function POST(request: NextRequest) {
                       <p style="margin: 0 0 10px; color: #6b7280; font-size: 14px;">
                         <strong>SimplifiqueIA</strong> - Automação Inteligente para RH
                       </p>
+                      <p style="margin: 0 0 10px; color: #9ca3af; font-size: 12px;">
+                        www.simplifiqueai.com.br
+                      </p>
                       <p style="margin: 0; color: #9ca3af; font-size: 12px;">
-                        Este é um email automático, por favor não responda.
+                        Este é um email automático. Em caso de dúvidas, entre em contato com nosso suporte.
                       </p>
                     </td>
                   </tr>

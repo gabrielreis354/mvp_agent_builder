@@ -1,6 +1,6 @@
 'use client';
 
-import { MessageCircle } from 'lucide-react';
+import { MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useHotjar } from '@/hooks/use-hotjar';
 
@@ -51,7 +51,7 @@ export function FeedbackButton({
       onClick={() => showFeedback()}
       className={className}
     >
-      <MessageCircle className="mr-2 h-4 w-4" />
+      <MessageSquare className="mr-2 h-4 w-4" />
       {label}
     </Button>
   );

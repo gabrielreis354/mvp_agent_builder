@@ -60,8 +60,12 @@ export class EmailService {
       }
       
       // ✅ Envio real de email
-      console.log(`📧 [EMAIL SERVICE] Enviando email para: ${options.to}`);
+      console.log(`📧 [EMAIL SERVICE] ===== INICIANDO ENVIO DE EMAIL =====`);
+      console.log(`📧 [EMAIL SERVICE] Para: ${options.to}`);
       console.log(`📧 [EMAIL SERVICE] Assunto: ${options.subject}`);
+      console.log(`📧 [EMAIL SERVICE] De: ${this.config.auth.user}`);
+      console.log(`📧 [EMAIL SERVICE] Servidor SMTP: ${this.config.host}:${this.config.port}`);
+      console.log(`📧 [EMAIL SERVICE] Secure: ${this.config.secure}`);
       console.log(`📧 [EMAIL SERVICE] Anexos: ${options.attachments?.length || 0}`);
       
       const info = await this.transporter.sendMail({
@@ -73,7 +77,12 @@ export class EmailService {
         attachments: options.attachments
       })
       
-      console.log(`✅ [EMAIL SERVICE] Email enviado com sucesso! MessageId: ${info.messageId}`);
+      console.log(`✅ [EMAIL SERVICE] Email enviado com sucesso!`);
+      console.log(`✅ [EMAIL SERVICE] MessageId: ${info.messageId}`);
+      console.log(`✅ [EMAIL SERVICE] Response: ${info.response}`);
+      console.log(`✅ [EMAIL SERVICE] Accepted: ${info.accepted?.join(', ')}`);
+      console.log(`✅ [EMAIL SERVICE] Rejected: ${info.rejected?.join(', ') || 'nenhum'}`);
+      console.log(`✅ [EMAIL SERVICE] ===== EMAIL ENVIADO =====`);
       
       return {
         success: true,
