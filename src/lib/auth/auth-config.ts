@@ -48,8 +48,10 @@ export const authOptions: NextAuthOptions = {
           }
 
           // 🔒 VERIFICAR SE EMAIL FOI VERIFICADO
+          // Nota: A verificação é feita no frontend antes do login
+          // para permitir redirecionamento adequado
           if (!user.emailVerified) {
-            throw new Error('EMAIL_NOT_VERIFIED');
+            return null;
           }
 
           // Log apenas em desenvolvimento

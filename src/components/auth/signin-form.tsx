@@ -65,6 +65,28 @@ function SignInFormContent() {
     setError('');
 
     try {
+      // 1. Verificar se email está verificado ANTES de tentar login
+      const checkResponse = await fetch('/api/auth/check-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      if (checkResponse.ok) {
+        const checkData = await checkResponse.json();
+        
+        if (!checkData.verified) {
+          setError('Por favor, verifique seu email antes de fazer login. Verifique sua caixa de entrada.');
+          // Redirecionar para página de verificação após 2 segundos
+          setTimeout(() => {
+            router.push(`/auth/verify-email?email=${encodeURIComponent(email)}`);
+          }, 2000);
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      // 2. Se verificado, tentar login
       const result = await signIn('credentials', {
         email,
         password,
@@ -72,16 +94,7 @@ function SignInFormContent() {
       });
 
       if (result?.error) {
-        // Verificar se é erro de email não verificado
-        if (result.error === 'EMAIL_NOT_VERIFIED') {
-          setError('Por favor, verifique seu email antes de fazer login. Verifique sua caixa de entrada.');
-          // Redirecionar para página de verificação após 2 segundos
-          setTimeout(() => {
-            router.push(`/auth/verify-email?email=${encodeURIComponent(email)}`);
-          }, 2000);
-        } else {
-          setError('Email ou senha inválidos');
-        }
+        setError('Email ou senha inválidos');
       } else {
         // Refresh session and redirect to callback URL
         await getSession();
