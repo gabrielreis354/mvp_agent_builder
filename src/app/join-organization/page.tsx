@@ -9,9 +9,17 @@ import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 function JoinOrganizationContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const token = searchParams.get('token');
+  const [token, setToken] = useState<string | null>(null);
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('Processando seu convite...');
+
+  // Carregar token da URL
+  useEffect(() => {
+    if (searchParams) {
+      const tokenParam = searchParams.get('token');
+      setToken(tokenParam);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!token) {

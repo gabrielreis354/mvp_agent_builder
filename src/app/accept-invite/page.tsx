@@ -16,10 +16,18 @@ interface Invitation {
 
 function AcceptInviteContent() {
   const searchParams = useSearchParams();
-  const token = searchParams.get('token');
+  const [token, setToken] = useState<string | null>(null);
   const [invitation, setInvitation] = useState<Invitation | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Carregar token da URL
+  useEffect(() => {
+    if (searchParams) {
+      const tokenParam = searchParams.get('token');
+      setToken(tokenParam);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!token) {

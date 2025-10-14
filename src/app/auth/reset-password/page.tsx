@@ -21,9 +21,17 @@ function ResetPasswordContent() {
   const [success, setSuccess] = useState(false);
   const [tokenValid, setTokenValid] = useState(false);
   const [email, setEmail] = useState('');
+  const [token, setToken] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const token = searchParams.get('token');
+
+  // Carregar token da URL
+  useEffect(() => {
+    if (searchParams) {
+      const tokenParam = searchParams.get('token');
+      setToken(tokenParam);
+    }
+  }, [searchParams]);
 
   // Validar token ao carregar
   useEffect(() => {

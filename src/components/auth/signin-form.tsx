@@ -16,12 +16,22 @@ function SignInFormContent() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [callbackUrl, setCallbackUrl] = useState('/builder');
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl') || '/builder';
+
+  // Carregar parâmetros da URL
+  useEffect(() => {
+    if (searchParams) {
+      const callback = searchParams.get('callbackUrl') || '/builder';
+      setCallbackUrl(callback);
+    }
+  }, [searchParams]);
 
   // Detectar retorno do OAuth
   useEffect(() => {
+    if (!searchParams) return;
+    
     const oauthError = searchParams.get('error');
     const oauthAttempt = typeof window !== 'undefined' 
       ? sessionStorage.getItem('oauth_attempt') 
