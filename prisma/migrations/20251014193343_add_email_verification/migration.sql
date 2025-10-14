@@ -1,16 +1,39 @@
--- AlterTable
-ALTER TABLE "Invitation" ADD COLUMN     "acceptedByUserId" TEXT,
-ADD COLUMN     "invitedBy" TEXT,
-ADD COLUMN     "usedAt" TIMESTAMP(3),
-ADD COLUMN     "usedByIp" TEXT;
+-- AlterTable (com IF NOT EXISTS para evitar erros)
+DO $$ 
+BEGIN
+    -- Adicionar colunas na tabela Invitation
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='Invitation' AND column_name='acceptedByUserId') THEN
+        ALTER TABLE "Invitation" ADD COLUMN "acceptedByUserId" TEXT;
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='Invitation' AND column_name='invitedBy') THEN
+        ALTER TABLE "Invitation" ADD COLUMN "invitedBy" TEXT;
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='Invitation' AND column_name='usedAt') THEN
+        ALTER TABLE "Invitation" ADD COLUMN "usedAt" TIMESTAMP(3);
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='Invitation' AND column_name='usedByIp') THEN
+        ALTER TABLE "Invitation" ADD COLUMN "usedByIp" TEXT;
+    END IF;
+    
+    -- Adicionar colunas na tabela users
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='company') THEN
+        ALTER TABLE "users" ADD COLUMN "company" TEXT;
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='verificationCode') THEN
+        ALTER TABLE "users" ADD COLUMN "verificationCode" TEXT;
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='verificationCodeExpires') THEN
+        ALTER TABLE "users" ADD COLUMN "verificationCodeExpires" TIMESTAMP(3);
+    END IF;
+END $$;
 
--- AlterTable
-ALTER TABLE "users" ADD COLUMN     "company" TEXT,
-ADD COLUMN     "verificationCode" TEXT,
-ADD COLUMN     "verificationCodeExpires" TIMESTAMP(3);
-
--- CreateTable
-CREATE TABLE "password_resets" (
+-- CreateTable (com IF NOT EXISTS)
+CREATE TABLE IF NOT EXISTS "password_resets" (
     "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "token" TEXT NOT NULL,
@@ -22,11 +45,11 @@ CREATE TABLE "password_resets" (
     CONSTRAINT "password_resets_pkey" PRIMARY KEY ("id")
 );
 
--- CreateIndex
-CREATE UNIQUE INDEX "password_resets_token_key" ON "password_resets"("token");
+-- CreateIndex (com IF NOT EXISTS)
+CREATE UNIQUE INDEX IF NOT EXISTS "password_resets_token_key" ON "password_resets"("token");
 
--- CreateIndex
-CREATE INDEX "password_resets_email_idx" ON "password_resets"("email");
+-- CreateIndex (com IF NOT EXISTS)
+CREATE INDEX IF NOT EXISTS "password_resets_email_idx" ON "password_resets"("email");
 
--- CreateIndex
-CREATE INDEX "password_resets_token_idx" ON "password_resets"("token");
+-- CreateIndex (com IF NOT EXISTS)
+CREATE INDEX IF NOT EXISTS "password_resets_token_idx" ON "password_resets"("token");
