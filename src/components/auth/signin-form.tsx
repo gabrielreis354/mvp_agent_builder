@@ -72,7 +72,16 @@ function SignInFormContent() {
       });
 
       if (result?.error) {
-        setError('Email ou senha inválidos');
+        // Verificar se é erro de email não verificado
+        if (result.error === 'EMAIL_NOT_VERIFIED') {
+          setError('Por favor, verifique seu email antes de fazer login. Verifique sua caixa de entrada.');
+          // Redirecionar para página de verificação após 2 segundos
+          setTimeout(() => {
+            router.push(`/auth/verify-email?email=${encodeURIComponent(email)}`);
+          }, 2000);
+        } else {
+          setError('Email ou senha inválidos');
+        }
       } else {
         // Refresh session and redirect to callback URL
         await getSession();
@@ -141,8 +150,13 @@ function SignInFormContent() {
         {/* Login Form */}
         <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 shadow-2xl">
           {error && (
-            <Alert variant="destructive" className="mb-6">
-              <AlertDescription>{error}</AlertDescription>
+            <Alert 
+              variant="destructive" 
+              className="mb-6 bg-red-500/90 border-red-400 text-white backdrop-blur-sm shadow-lg"
+            >
+              <AlertDescription className="text-white font-medium">
+                ⚠️ {error}
+              </AlertDescription>
             </Alert>
           )}
 

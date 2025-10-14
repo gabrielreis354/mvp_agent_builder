@@ -22,30 +22,32 @@ model Invitation {
 }
 
 model User {
-  id             String           @id @default(cuid())
-  email          String           @unique
-  name           String?
-  password       String?
-  image          String?
-  emailVerified  DateTime?
-  role           UserRole         @default(USER)
-  jobTitle       String?
-  department     String?
-  companySize    String?
-  primaryUseCase String?
-  phone          String?
-  linkedIn       String?
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  organizationId String
-  company        String?
-  accounts       Account[]
-  executions     AgentExecution[]
-  agents         Agent[]
-  reports        Report[]
-  sessions       Session[]
-  apiKeys        UserApiKey[]
-  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  id                      String           @id @default(cuid())
+  email                   String           @unique
+  name                    String?
+  password                String?
+  image                   String?
+  emailVerified           DateTime?
+  verificationCode        String?
+  verificationCodeExpires DateTime?
+  role                    UserRole         @default(USER)
+  jobTitle                String?
+  department              String?
+  companySize             String?
+  primaryUseCase          String?
+  phone                   String?
+  linkedIn                String?
+  createdAt               DateTime         @default(now())
+  updatedAt               DateTime         @updatedAt
+  organizationId          String
+  company                 String?
+  accounts                Account[]
+  executions              AgentExecution[]
+  agents                  Agent[]
+  reports                 Report[]
+  sessions                Session[]
+  apiKeys                 UserApiKey[]
+  organization            Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@map("users")
 }

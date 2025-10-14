@@ -50,8 +50,26 @@ export function SignUpForm() {
         setError('As senhas não coincidem');
         return;
       }
+      
+      // Validação de senha forte
       if (formData.password.length < 8) {
-        setError('A senha deve ter pelo menos 8 caracteres');
+        setError('A senha deve ter no mínimo 8 caracteres');
+        return;
+      }
+      if (!/[a-z]/.test(formData.password)) {
+        setError('A senha deve conter pelo menos uma letra minúscula');
+        return;
+      }
+      if (!/[A-Z]/.test(formData.password)) {
+        setError('A senha deve conter pelo menos uma letra maiúscula');
+        return;
+      }
+      if (!/[0-9]/.test(formData.password)) {
+        setError('A senha deve conter pelo menos um número');
+        return;
+      }
+      if (!/[^a-zA-Z0-9]/.test(formData.password)) {
+        setError('A senha deve conter pelo menos um caractere especial (!@#$%^&*...)');
         return;
       }
     }
@@ -95,9 +113,14 @@ export function SignUpForm() {
 
       if (response.ok) {
         setSuccess(true);
-        // A API retorna sucesso, agora redirecionamos para o login
-        // com uma mensagem para o usuário.
-        router.push('/auth/signin?message=Account created successfully! Please sign in.');
+        // Verificar se requer verificação de email
+        if (data.requiresVerification) {
+          // Redirecionar para página de verificação
+          router.push(`/auth/verify-email?email=${encodeURIComponent(formData.email)}`);
+        } else {
+          // Fallback: redirecionar para login
+          router.push('/auth/signin?message=Account created successfully! Please sign in.');
+        }
       } else {
         // Mostrar erro detalhado de validação de email corporativo
         let errorMessage = data.error || 'Erro ao criar conta';
@@ -228,8 +251,13 @@ export function SignUpForm() {
                 animate={{ opacity: 1, y: 0 }}
                 className="mb-4"
               >
-                <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
+                <Alert 
+                  variant="destructive"
+                  className="bg-red-500/90 border-red-400 text-white backdrop-blur-sm shadow-lg"
+                >
+                  <AlertDescription className="text-white font-medium">
+                    ⚠️ {error}
+                  </AlertDescription>
                 </Alert>
               </motion.div>
             )}
@@ -281,9 +309,18 @@ export function SignUpForm() {
                       value={formData.password}
                       onChange={handleChange}
                       className="bg-white/10 border-white/30 text-white placeholder-gray-400 focus:border-blue-400 focus:ring-blue-400/50 backdrop-blur-sm"
-                      placeholder="Mínimo 8 caracteres"
+                      placeholder="Senha forte"
                       required
                     />
+                    <div className="text-xs text-blue-200 mt-1 space-y-1">
+                      <p className="font-medium">A senha deve conter:</p>
+                      <ul className="list-disc list-inside space-y-0.5 ml-2">
+                        <li>Mínimo 8 caracteres</li>
+                        <li>Letras maiúsculas e minúsculas</li>
+                        <li>Números</li>
+                        <li>Caractere especial (!@#$%^&*...)</li>
+                      </ul>
+                    </div>
                   </div>
 
                   <div className="space-y-2">

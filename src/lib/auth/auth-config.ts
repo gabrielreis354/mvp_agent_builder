@@ -47,6 +47,11 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
+          // 🔒 VERIFICAR SE EMAIL FOI VERIFICADO
+          if (!user.emailVerified) {
+            throw new Error('EMAIL_NOT_VERIFIED');
+          }
+
           // Log apenas em desenvolvimento
           if (process.env.NODE_ENV === 'development') {
             console.log('✅ Authentication successful for:', user.email);

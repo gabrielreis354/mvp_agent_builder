@@ -17,10 +17,11 @@ export const metadata: Metadata = {
   keywords: ['automação rh', 'ia recursos humanos', 'análise currículos', 'contratos clt', 'gestão rh', 'simplifique rh'],
   icons: {
     icon: [
-      { url: '/icon.svg', type: 'image/svg+xml' },
-      { url: '/favicon.ico', sizes: 'any' }
+      { url: '/favicon-32x32.png?v=2', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-16x16.png?v=2', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon.ico?v=2', sizes: 'any' }
     ],
-    apple: '/apple-icon.svg',
+    apple: '/apple-touch-icon.png?v=2',
   },
   openGraph: {
     title: 'SimplifiqueIA RH - Automatize seu RH com Inteligência Artificial',
@@ -48,6 +49,13 @@ export default function RootLayout({
 
   return (
     <html lang="pt-BR" suppressHydrationWarning>
+      <head>
+        {/* Favicon com cache-busting */}
+        <link rel="icon" type="image/x-icon" href="/favicon.ico?v=2" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=2" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=2" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=2" />
+      </head>
       <body className={inter.className} suppressHydrationWarning>
         <ThemeProvider
           attribute="class"

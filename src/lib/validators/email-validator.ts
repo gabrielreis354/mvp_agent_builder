@@ -133,8 +133,20 @@ export async function validateCorporateEmail(email: string): Promise<EmailValida
   } catch (error) {
     console.error('🔍 [EmailValidator] Erro ao verificar DNS MX:', error)
     
-    // Se não conseguir verificar DNS, permitir mas com warning
-    warnings.push('Não foi possível verificar o servidor de email. Prosseguindo com validação.')
+    // 🔒 SEGURANÇA: BLOQUEAR se não conseguir verificar DNS
+    // Domínio provavelmente não existe ou está mal configurado
+    return {
+      isValid: false,
+      isCorporate: false,
+      domain,
+      error: 'Não foi possível verificar o domínio de email. O domínio pode não existir ou estar mal configurado.',
+      suggestions: [
+        'Verifique se digitou o email corretamente',
+        'Confirme que o domínio da empresa está ativo',
+        'Entre em contato com o TI da sua empresa',
+        'Se o problema persistir, contate nosso suporte: suporte@simplifiqueia.com.br'
+      ]
+    }
   }
   
   // 5. Verificar se está na whitelist de domínios conhecidos

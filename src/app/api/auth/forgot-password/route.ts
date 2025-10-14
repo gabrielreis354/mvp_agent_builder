@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Enviar email
-    const resetUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/auth/reset-password?token=${token}`;
+    const resetUrl = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${token}`;
     
     const emailService = getEmailService();
     const emailResult = await emailService.sendEmail({
@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
                       <table width="100%" cellpadding="0" cellspacing="0">
                         <tr>
                           <td align="center" style="padding: 10px 0 30px;">
-                            <a href="${resetUrl}" style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);">
+                            <a href="${resetUrl}" style="display: inline-block; padding: 16px 40px; background-color: #3b82f6; color: #ffffff !important; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3); border: 2px solid #3b82f6;">
                               Redefinir Minha Senha
                             </a>
                           </td>
@@ -167,7 +167,7 @@ export async function POST(request: NextRequest) {
                         <strong>SimplifiqueIA</strong> - Automação Inteligente para RH
                       </p>
                       <p style="margin: 0 0 10px; color: #9ca3af; font-size: 12px;">
-                        www.simplifiqueai.com.br
+                        <a href="https://simplifiqueia.com.br" style="color: #3b82f6; text-decoration: none;">www.simplifiqueia.com.br</a>
                       </p>
                       <p style="margin: 0; color: #9ca3af; font-size: 12px;">
                         Este é um email automático. Em caso de dúvidas, entre em contato com nosso suporte.
