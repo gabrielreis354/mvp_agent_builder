@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth/auth-config';
 import { prisma } from '@/lib/database/prisma';
 import { withSecurity } from '@/lib/security/security-middleware'
+import { validateFile, formatFileSize } from '@/lib/validators/file-validator';
 
 async function handlePOST(request: NextRequest): Promise<NextResponse> {
   try {
@@ -30,6 +31,44 @@ async function handlePOST(request: NextRequest): Promise<NextResponse> {
     
     console.log(`📁 Processing ${filesToProcess.length} file(s)`)
     
+    // 🔐 VALIDAÇÃO DE ARQUIVOS
+    const invalidFiles: Array<{ name: string; error: string }> = []
+    const validFiles: File[] = []
+    
+    for (const file of filesToProcess) {
+      console.log(`🔍 Validating file: ${file.name} (${formatFileSize(file.size)})`)
+      const validation = await validateFile(file)
+      
+      if (!validation.isValid) {
+        console.warn(`❌ File rejected: ${file.name} - ${validation.error}`)
+        invalidFiles.push({
+          name: file.name,
+          error: validation.error || 'Arquivo inválido'
+        })
+      } else {
+        if (validation.warnings && validation.warnings.length > 0) {
+          console.warn(`⚠️ File warnings: ${file.name} - ${validation.warnings.join(', ')}`)
+        }
+        validFiles.push(file)
+      }
+    }
+    
+    // Se todos os arquivos forem inválidos, retornar erro
+    if (validFiles.length === 0) {
+      return NextResponse.json(
+        { 
+          error: 'Nenhum arquivo válido para processar',
+          invalidFiles
+        },
+        { status: 400 }
+      )
+    }
+    
+    // Se alguns arquivos foram rejeitados, avisar
+    if (invalidFiles.length > 0) {
+      console.warn(`⚠️ ${invalidFiles.length} arquivo(s) rejeitado(s), processando ${validFiles.length} válido(s)`)
+    }
+    
     const processor = new UnifiedProcessor({
       enableOCR: false, // Desabilitar OCR por enquanto
       fallbackToMock: false, // Não usar mock, queremos dados reais
@@ -39,8 +78,8 @@ async function handlePOST(request: NextRequest): Promise<NextResponse> {
     })
     const results: any[] = []
     
-    for (const file of filesToProcess) {
-      console.log(`📄 Processing file: ${file.name} (${file.type}, ${file.size} bytes)`)
+    for (const file of validFiles) {
+      console.log(`📄 Processing file: ${file.name} (${file.type}, ${formatFileSize(file.size)})`)
       
       try {
         const result = await processor.processFile(file)

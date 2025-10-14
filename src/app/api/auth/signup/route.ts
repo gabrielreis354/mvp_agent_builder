@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/database/prisma';
 import { z } from 'zod';
+import { validateCorporateEmail } from '@/lib/validators/email-validator';
 
 const signupSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -26,6 +27,27 @@ export async function POST(request: NextRequest) {
       email, password, name, company, jobTitle, 
       department, companySize, primaryUseCase, phone, linkedIn
     } = validatedData;
+
+    // 🔐 VALIDAÇÃO DE EMAIL CORPORATIVO
+    console.log(`🔍 [Signup] Validando email corporativo: ${email}`);
+    const emailValidation = await validateCorporateEmail(email);
+    
+    if (!emailValidation.isValid || !emailValidation.isCorporate) {
+      console.warn(`❌ [Signup] Email rejeitado: ${email} - ${emailValidation.error}`);
+      return NextResponse.json(
+        { 
+          error: emailValidation.error || 'Email corporativo inválido',
+          suggestions: emailValidation.suggestions,
+          domain: emailValidation.domain
+        },
+        { status: 400 }
+      );
+    }
+    
+    console.log(`✅ [Signup] Email corporativo válido: ${email} (domínio: ${emailValidation.domain})`);
+    if (emailValidation.warnings && emailValidation.warnings.length > 0) {
+      console.log(`⚠️ [Signup] Avisos: ${emailValidation.warnings.join(', ')}`);
+    }
 
     const existingUser = await prisma.user.findUnique({
       where: { email },

@@ -70,7 +70,7 @@ export function SignUpForm() {
     setError('');
 
     try {
-      const response = await fetch('/api/auth/register', {
+      const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -79,12 +79,13 @@ export function SignUpForm() {
           name: formData.name,
           email: formData.email,
           password: formData.password,
-          // Optional HR fields - only send if filled
-          ...(formData.company && { company: formData.company }),
-          ...(formData.jobTitle && { jobTitle: formData.jobTitle }),
+          // Required HR fields for corporate validation
+          company: formData.company || 'Empresa',
+          jobTitle: formData.jobTitle || 'Profissional',
+          companySize: formData.companySize || '1-10',
+          primaryUseCase: formData.primaryUseCase || 'other',
+          // Optional HR fields
           ...(formData.department && { department: formData.department }),
-          ...(formData.companySize && { companySize: formData.companySize }),
-          ...(formData.primaryUseCase && { primaryUseCase: formData.primaryUseCase }),
           ...(formData.phone && { phone: formData.phone }),
           ...(formData.linkedIn && { linkedIn: formData.linkedIn }),
         }),
@@ -98,7 +99,15 @@ export function SignUpForm() {
         // com uma mensagem para o usuário.
         router.push('/auth/signin?message=Account created successfully! Please sign in.');
       } else {
-        setError(data.error || 'Erro ao criar conta');
+        // Mostrar erro detalhado de validação de email corporativo
+        let errorMessage = data.error || 'Erro ao criar conta';
+        
+        // Se houver sugestões, adicionar ao erro
+        if (data.suggestions && data.suggestions.length > 0) {
+          errorMessage += '\n\nSugestões:\n' + data.suggestions.join('\n');
+        }
+        
+        setError(errorMessage);
       }
     } catch (err) {
       setError('Erro de rede. Não foi possível conectar ao servidor.');
@@ -258,6 +267,9 @@ export function SignUpForm() {
                       placeholder="seu.email@empresa.com"
                       required
                     />
+                    <p className="text-xs text-blue-200 mt-1">
+                      ⚠️ Apenas emails corporativos são aceitos. Emails gratuitos (Gmail, Outlook, etc.) não são permitidos.
+                    </p>
                   </div>
 
                   <div className="space-y-2">

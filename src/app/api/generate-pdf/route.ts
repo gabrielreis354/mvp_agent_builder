@@ -1,8 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth/auth-config'
 import jsPDF from 'jspdf'
 
 export async function POST(request: NextRequest) {
   try {
+    // 🔐 SEGURANÇA: Autenticação obrigatória
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { success: false, error: 'Autenticação necessária para gerar PDF' },
+        { status: 401 }
+      )
+    }
+
     const body = await request.json()
     const { 
       documento, 

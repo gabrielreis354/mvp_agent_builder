@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth/auth-config';
 import { getEmailService } from '@/lib/email/email-service';
 
 export const dynamic = 'force-dynamic';
@@ -31,6 +33,15 @@ function getDocumentDetails(format: 'pdf' | 'docx' | 'excel' | 'html') {
 
 export async function POST(request: NextRequest) {
   try {
+    // 🔐 SEGURANÇA: Autenticação obrigatória
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { success: false, error: 'Autenticação necessária para gerar documentos' },
+        { status: 401 }
+      );
+    }
+
     const { content, format = 'pdf', email, fileName, download = true } = await request.json();
 
     // 1. Validação básica

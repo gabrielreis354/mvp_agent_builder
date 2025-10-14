@@ -41,7 +41,15 @@ export class EmailService {
       auth: {
         user: this.config.auth.user,
         pass: this.config.auth.pass
-      }
+      },
+      connectionTimeout: 10000, // 10 segundos
+      greetingTimeout: 10000,   // 10 segundos
+      socketTimeout: 30000,     // 30 segundos
+      pool: true,               // Usar pool de conexões
+      maxConnections: 5,        // Máximo de conexões simultâneas
+      maxMessages: 100,         // Máximo de mensagens por conexão
+      rateDelta: 1000,          // Intervalo entre mensagens (ms)
+      rateLimit: 5              // Máximo de mensagens por rateDelta
     })
   }
   
@@ -56,6 +64,19 @@ export class EmailService {
         return {
           success: false,
           error: errorMsg
+        }
+      }
+
+      // Verificar conexão antes de enviar
+      try {
+        console.log(`🔍 [EMAIL SERVICE] Verificando conexão SMTP...`);
+        await this.transporter.verify();
+        console.log(`✅ [EMAIL SERVICE] Conexão SMTP verificada com sucesso`);
+      } catch (verifyError) {
+        console.error(`❌ [EMAIL SERVICE] Falha na verificação SMTP:`, verifyError);
+        return {
+          success: false,
+          error: `Falha na conexão SMTP: ${verifyError instanceof Error ? verifyError.message : 'Erro desconhecido'}`
         }
       }
       

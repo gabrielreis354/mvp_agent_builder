@@ -23,11 +23,7 @@ export async function GET(request: NextRequest) {
       services: {
         redis: redisHealthy ? 'healthy' : 'unhealthy',
         // database: dbHealthy ? 'healthy' : 'unhealthy',
-        ai_providers: {
-          openai: process.env.OPENAI_API_KEY ? 'configured' : 'not_configured',
-          anthropic: process.env.ANTHROPIC_API_KEY ? 'configured' : 'not_configured',
-          google: process.env.GOOGLE_AI_API_KEY ? 'configured' : 'not_configured'
-        }
+        ai: 'operational' // 🔐 SEGURANÇA: Não expor detalhes de configuração
       },
       memory: {
         used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),

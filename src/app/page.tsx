@@ -69,28 +69,28 @@ export default function HomePage() {
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
+        <div className="relative max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 pt-12 sm:pt-16 md:pt-20 pb-12 sm:pb-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             className="text-center"
           >
-            <div className="flex items-center justify-center mb-6">
-              <Brain className="h-12 w-12 text-blue-400 mr-3" />
-              <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+            <div className="flex items-center justify-center mb-4 sm:mb-6">
+              <Brain className="h-10 w-10 sm:h-12 sm:w-12 text-blue-400 mr-2 sm:mr-3" />
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                 SimplifiqueIA
               </h1>
             </div>
             
-            <h2 className="text-4xl md:text-6xl font-bold mb-6">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6">
               Automatize seu RH com
               <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
                 {" "}Inteligência Artificial
               </span>
             </h2>
             
-            <p className="text-xl text-gray-200 mb-8 max-w-3xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-gray-200 mb-6 sm:mb-8 max-w-3xl mx-auto px-2">
               Crie agentes inteligentes para RH em minutos. Interface visual drag-and-drop ou linguagem natural. 
               Multi-usuário, multi-empresa. OpenAI, Anthropic e Google integrados.
             </p>
@@ -101,11 +101,12 @@ export default function HomePage() {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="px-10 py-5 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-xl font-semibold text-xl transition-all duration-300 transform shadow-xl hover:shadow-2xl flex items-center gap-3"
+                  className="px-6 py-3 sm:px-8 sm:py-4 md:px-10 md:py-5 min-h-[44px] bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-xl font-semibold text-base sm:text-lg md:text-xl transition-all duration-300 transform shadow-xl hover:shadow-2xl flex items-center gap-2 sm:gap-3"
                 >
-                  <Brain className="w-6 h-6" />
-                  Criar Agente
-                  <ArrowRight className="w-5 h-5" />
+                  <Brain className="w-5 h-5 sm:w-6 sm:h-6" />
+                  <span className="hidden sm:inline">Criar Agente</span>
+                  <span className="sm:hidden">Criar</span>
+                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
                 </motion.button>
               </Link>
 
@@ -114,7 +115,7 @@ export default function HomePage() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="px-8 py-5 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white rounded-xl font-medium text-lg transition-all duration-300 border border-white/20 hover:border-white/40 flex items-center gap-2"
+                  className="px-4 py-3 sm:px-6 sm:py-4 md:px-8 md:py-5 min-h-[44px] bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white rounded-xl font-medium text-sm sm:text-base md:text-lg transition-all duration-300 border border-white/20 hover:border-white/40 flex items-center gap-2"
                 >
                   <User className="w-5 h-5" />
                   Meu Perfil
@@ -125,7 +126,7 @@ export default function HomePage() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="px-8 py-5 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white rounded-xl font-medium text-lg transition-all duration-300 border border-white/20 hover:border-white/40 flex items-center gap-2"
+                  className="px-4 py-3 sm:px-6 sm:py-4 md:px-8 md:py-5 min-h-[44px] bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white rounded-xl font-medium text-sm sm:text-base md:text-lg transition-all duration-300 border border-white/20 hover:border-white/40 flex items-center gap-2"
                 >
                   <Users className="w-5 h-5" />
                   Meus Agentes
@@ -136,7 +137,7 @@ export default function HomePage() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="px-8 py-5 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white rounded-xl font-medium text-lg transition-all duration-300 border border-white/20 hover:border-white/40 flex items-center gap-2"
+                  className="px-4 py-3 sm:px-6 sm:py-4 md:px-8 md:py-5 min-h-[44px] bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white rounded-xl font-medium text-sm sm:text-base md:text-lg transition-all duration-300 border border-white/20 hover:border-white/40 flex items-center gap-2"
                 >
                   <Sparkles className="w-5 h-5" />
                   Ver Templates
@@ -150,7 +151,7 @@ export default function HomePage() {
       {/* Metrics Section */}
       <div className="py-16 bg-black/40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
             {metrics.map((metric, index) => (
               <motion.div
                 key={metric.label}
@@ -162,8 +163,8 @@ export default function HomePage() {
                 <div className="flex justify-center mb-3">
                   <metric.icon className="h-8 w-8 text-blue-400" />
                 </div>
-                <div className="text-3xl font-bold text-white mb-1">{metric.value}</div>
-                <div className="text-gray-400">{metric.label}</div>
+                <div className="text-2xl sm:text-3xl font-bold text-white mb-1">{metric.value}</div>
+                <div className="text-sm sm:text-base text-gray-400">{metric.label}</div>
               </motion.div>
             ))}
           </div>
