@@ -12,8 +12,10 @@ import Link from 'next/link';
 function VerifyEmailContent() {
   const [code, setCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isResending, setIsResending] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [resendMessage, setResendMessage] = useState('');
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get('email') || '';
@@ -51,6 +53,32 @@ function VerifyEmailContent() {
   const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, '').slice(0, 6);
     setCode(value);
+  };
+
+  const handleResendCode = async () => {
+    setIsResending(true);
+    setError('');
+    setResendMessage('');
+
+    try {
+      const res = await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setResendMessage('✅ Novo código enviado! Verifique sua caixa de entrada.');
+      } else {
+        setError(data.error || 'Erro ao reenviar código');
+      }
+    } catch (err) {
+      setError('Erro ao reenviar código. Tente novamente.');
+    } finally {
+      setIsResending(false);
+    }
   };
 
   if (success) {
@@ -150,6 +178,19 @@ function VerifyEmailContent() {
               </motion.div>
             )}
 
+            {resendMessage && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <Alert className="bg-green-500/90 border-green-400 text-white backdrop-blur-sm shadow-lg">
+                  <AlertDescription className="text-white font-medium">
+                    {resendMessage}
+                  </AlertDescription>
+                </Alert>
+              </motion.div>
+            )}
+
             <Button
               type="submit"
               disabled={isLoading || code.length !== 6}
@@ -173,13 +214,18 @@ function VerifyEmailContent() {
             </p>
             <button
               type="button"
-              className="text-blue-400 hover:text-blue-300 text-sm font-medium underline"
-              onClick={() => {
-                // TODO: Implementar reenvio de código
-                alert('Funcionalidade de reenvio será implementada em breve');
-              }}
+              disabled={isResending}
+              className="text-blue-400 hover:text-blue-300 text-sm font-medium underline disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
+              onClick={handleResendCode}
             >
-              Reenviar código
+              {isResending ? (
+                <>
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  Reenviando...
+                </>
+              ) : (
+                'Reenviar código'
+              )}
             </button>
             
             <div className="pt-4 border-t border-white/10">
