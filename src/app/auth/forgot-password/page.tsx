@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Brain, ArrowLeft, Mail, CheckCircle, RefreshCw, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { SpamWarning } from '@/components/ui/spam-warning';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -131,9 +132,6 @@ export default function ForgotPasswordPage() {
                   Se existe uma conta associada a <strong className="text-white">{email}</strong>, 
                   você receberá um email com instruções para redefinir sua senha.
                 </p>
-                <p className="text-gray-400 text-xs">
-                  Não esqueça de verificar sua caixa de spam.
-                </p>
                 
                 {/* Rate limit info */}
                 {remainingAttempts !== null && (
@@ -192,6 +190,11 @@ export default function ForgotPasswordPage() {
                 >
                   Enviar para outro email
                 </button>
+              </div>
+              
+              {/* Spam Warning */}
+              <div className="mt-6">
+                <SpamWarning email={email} />
               </div>
             </motion.div>
           ) : (

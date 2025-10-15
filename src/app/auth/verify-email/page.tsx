@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Mail, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { SpamWarning } from '@/components/ui/spam-warning';
 
 export default function VerifyEmailPage() {
   const [code, setCode] = useState('');
@@ -247,16 +248,14 @@ export default function VerifyEmailPage() {
           </div>
         </div>
 
-        {/* Info Box */}
+        {/* Spam Warning */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="mt-6 bg-blue-500/10 backdrop-blur-sm border border-blue-400/30 rounded-lg p-4"
+          className="mt-6"
         >
-          <p className="text-sm text-blue-200 text-center">
-            💡 <strong>Dica:</strong> Verifique também sua pasta de spam se não encontrar o email.
-          </p>
+          <SpamWarning email={email} />
         </motion.div>
       </motion.div>
     </div>

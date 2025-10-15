@@ -192,10 +192,20 @@ export function AgentExecutionModalV2({
         );
       }
 
-      toast({
-        title: "Execução Concluída",
-        description: "O agente foi executado com sucesso.",
-      });
+      // Toast diferenciado por método de entrega
+      if (submittedFormData.deliveryMethod === "email") {
+        toast({
+          title: "✅ Relatório Enviado por Email",
+          description: `Email enviado para ${submittedFormData.email}. Verifique sua caixa de SPAM se não receber em 2 minutos.`,
+          duration: 8000, // 8 segundos para dar tempo de ler
+        });
+      } else {
+        toast({
+          title: "Execução Concluída",
+          description: "O agente foi executado com sucesso.",
+        });
+      }
+      
       setExecutionResult(result);
       onExecutionComplete(result);
 
