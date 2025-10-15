@@ -33,13 +33,21 @@ function getDocumentDetails(format: 'pdf' | 'docx' | 'excel' | 'html') {
 
 export async function POST(request: NextRequest) {
   try {
-    // 🔐 SEGURANÇA: Autenticação obrigatória
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
-      return NextResponse.json(
-        { success: false, error: 'Autenticação necessária para gerar documentos' },
-        { status: 401 }
-      );
+    // 🔐 SEGURANÇA: Permitir chamadas internas (de outras APIs) ou autenticadas
+    const internalApiKey = request.headers.get('x-internal-api-key');
+    const isInternalCall = internalApiKey === process.env.INTERNAL_API_KEY;
+    
+    if (!isInternalCall) {
+      // Se não for chamada interna, exigir autenticação
+      const session = await getServerSession(authOptions);
+      if (!session?.user?.email) {
+        return NextResponse.json(
+          { success: false, error: 'Autenticação necessária para gerar documentos' },
+          { status: 401 }
+        );
+      }
+    } else {
+      console.log('🔓 [API Generate] Chamada interna autorizada');
     }
 
     const { content, format = 'pdf', email, fileName, download = true } = await request.json();

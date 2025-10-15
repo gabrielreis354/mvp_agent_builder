@@ -305,12 +305,46 @@ export async function POST(request: NextRequest) {
     // Preparar anexo se fornecido
     let attachments = undefined;
     if (attachment) {
+      console.log('📎 [SEND-REPORT-EMAIL] Processando anexo:', {
+        filename: attachment.filename,
+        mimeType: attachment.contentType,
+        hasContent: !!attachment.content,
+        contentIsBuffer: Buffer.isBuffer(attachment.content),
+        contentHasData: !!(attachment.content?.data),
+        contentType: typeof attachment.content
+      });
+
+      // Converter conteúdo para Buffer
+      let contentBuffer: Buffer;
+      
+      if (Buffer.isBuffer(attachment.content)) {
+        // Já é um Buffer
+        contentBuffer = attachment.content;
+        console.log('📎 [SEND-REPORT-EMAIL] Conteúdo já é Buffer');
+      } else if (attachment.content?.data && Array.isArray(attachment.content.data)) {
+        // Buffer serializado como JSON (formato: {type: 'Buffer', data: [...]})
+        contentBuffer = Buffer.from(attachment.content.data);
+        console.log('📎 [SEND-REPORT-EMAIL] Convertido de JSON serializado para Buffer');
+      } else if (attachment.content?.data && Buffer.isBuffer(attachment.content.data)) {
+        // Nested buffer
+        contentBuffer = attachment.content.data;
+        console.log('📎 [SEND-REPORT-EMAIL] Extraído Buffer aninhado');
+      } else if (typeof attachment.content === 'string') {
+        // String base64 ou texto
+        contentBuffer = Buffer.from(attachment.content, 'base64');
+        console.log('📎 [SEND-REPORT-EMAIL] Convertido de string base64 para Buffer');
+      } else {
+        console.error('❌ [SEND-REPORT-EMAIL] Formato de conteúdo não reconhecido:', attachment.content);
+        throw new Error('Formato de anexo inválido');
+      }
+
       attachments = [{
         filename: attachment.filename,
-        content: Buffer.from(attachment.content.data || attachment.content), // Suporta ambos os formatos
+        content: contentBuffer,
         contentType: attachment.contentType
       }];
-      console.log(`📎 Anexando arquivo: ${attachment.filename} (${attachments[0].content.length} bytes)`);
+      
+      console.log(`✅ [SEND-REPORT-EMAIL] Anexo preparado: ${attachment.filename} (${contentBuffer.length} bytes, ${attachment.contentType})`);
     }
 
     // Enviar email usando o serviço real

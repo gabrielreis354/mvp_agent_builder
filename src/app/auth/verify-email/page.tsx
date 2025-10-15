@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, Suspense, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -9,7 +9,7 @@ import { Loader2, Mail, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 
-function VerifyEmailContent() {
+export default function VerifyEmailPage() {
   const [code, setCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
@@ -18,12 +18,15 @@ function VerifyEmailContent() {
   const [resendMessage, setResendMessage] = useState('');
   const [email, setEmail] = useState('');
   const router = useRouter();
-  const searchParams = useSearchParams();
 
+  // Carregar email da URL no cliente
   useEffect(() => {
-    const emailParam = searchParams?.get('email') || '';
-    setEmail(emailParam);
-  }, [searchParams]);
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const emailParam = params.get('email') || '';
+      setEmail(emailParam);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -257,17 +260,5 @@ function VerifyEmailContent() {
         </motion.div>
       </motion.div>
     </div>
-  );
-}
-
-export default function VerifyEmailPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
-        <Loader2 className="w-8 h-8 text-white animate-spin" />
-      </div>
-    }>
-      <VerifyEmailContent />
-    </Suspense>
   );
 }

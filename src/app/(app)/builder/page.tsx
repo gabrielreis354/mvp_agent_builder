@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, Suspense } from 'react'
 import { motion } from 'framer-motion'
 import { 
   Brain, 
@@ -39,7 +39,9 @@ function safeJsonParse<T = any>(str: string | null | undefined, fallback: T): T 
 
 type BuilderMode = 'templates' | 'visual' | 'natural'
 
-export default function BuilderPage() {
+// Componente interno que usa useSearchParams
+function BuilderContent() {
+  const searchParams = useSearchParams();
   const [mode, setMode] = useState<BuilderMode>('templates')
   const [useFriendlyMode, setUseFriendlyMode] = useState(true) // Modo amigável por padrão
   const [agent, setAgent] = useState<Partial<Agent>>({
@@ -58,11 +60,10 @@ export default function BuilderPage() {
   // Load agent data if editing, previewing, or using template
   useEffect(() => {
     const loadAgentData = async () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const editId = urlParams.get('edit') || urlParams.get('load');
-      const previewId = urlParams.get('preview');
-      const templateId = urlParams.get('template');
-      const shouldExecute = urlParams.get('execute') === 'true';
+      const editId = searchParams.get('edit') || searchParams.get('load');
+      const previewId = searchParams.get('preview');
+      const templateId = searchParams.get('template');
+      const shouldExecute = searchParams.get('execute') === 'true';
 
             
       console.log('Loading agent data:', { editId, previewId, templateId })
@@ -162,7 +163,7 @@ export default function BuilderPage() {
     }
 
     loadAgentData()
-  }, [])
+  }, [searchParams])
 
   const handleSaveAgent = async (nodes: AgentNode[], edges: AgentEdge[]) => {
     const updatedAgent = {
@@ -290,7 +291,6 @@ export default function BuilderPage() {
   };
 
   return (
-    <AuthGuard>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
       {/* Header */}
       <div className="bg-slate-900/50 backdrop-blur-lg border-b border-white/10 sticky top-0 z-50">
@@ -446,6 +446,23 @@ export default function BuilderPage() {
         </div>
       </div>
       </div>
-                  </AuthGuard>
+  )
+}
+
+// Componente principal com Suspense
+export default function BuilderPage() {
+  return (
+    <AuthGuard>
+      <Suspense fallback={
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+          <div className="text-white text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+            <p className="text-lg">Carregando Builder...</p>
+          </div>
+        </div>
+      }>
+        <BuilderContent />
+      </Suspense>
+    </AuthGuard>
   )
 }

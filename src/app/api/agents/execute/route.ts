@@ -247,7 +247,10 @@ async function handlePOST(request: NextRequest): Promise<NextResponse> {
         
         const generateResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3001'}/api/generate-document`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'x-internal-api-key': process.env.INTERNAL_API_KEY || 'dev-internal-key-12345'
+          },
           body: JSON.stringify({
             content: result.output,
             format: docFormat,

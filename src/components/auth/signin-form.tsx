@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect } from 'react';
 import { signIn, getSession } from 'next-auth/react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,28 +11,29 @@ import { Loader2, Brain, ArrowRight, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 
-function SignInFormContent() {
+export function SignInForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [callbackUrl, setCallbackUrl] = useState('/builder');
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   // Carregar parâmetros da URL
   useEffect(() => {
-    if (searchParams) {
-      const callback = searchParams.get('callbackUrl') || '/builder';
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const callback = params.get('callbackUrl') || '/builder';
       setCallbackUrl(callback);
     }
-  }, [searchParams]);
+  }, []);
 
   // Detectar retorno do OAuth
   useEffect(() => {
-    if (!searchParams) return;
+    if (typeof window === 'undefined') return;
     
-    const oauthError = searchParams.get('error');
+    const params = new URLSearchParams(window.location.search);
+    const oauthError = params.get('error');
     const oauthAttempt = typeof window !== 'undefined' 
       ? sessionStorage.getItem('oauth_attempt') 
       : null;
@@ -291,13 +292,5 @@ function SignInFormContent() {
         </div>
       </div>
     </div>
-  );
-}
-
-export function SignInForm() {
-  return (
-    <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-gray-900 to-purple-900 flex items-center justify-center"><div className="text-white">Carregando...</div></div>}>
-      <SignInFormContent />
-    </Suspense>
   );
 }

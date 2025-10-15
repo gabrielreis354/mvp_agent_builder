@@ -103,9 +103,28 @@ ${options.systemPrompt || ''}`;
         model,
         provider: 'openai'
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('OpenAI API error:', error);
-      throw new Error(`OpenAI API call failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      
+      // Tratamento específico de erros da OpenAI
+      if (error?.status === 404) {
+        throw new Error(`❌ Modelo "${model}" não está disponível ou não existe. Verifique se o modelo está correto e se você tem acesso a ele.`);
+      }
+      
+      if (error?.status === 401) {
+        throw new Error(`❌ Chave de API inválida. Verifique suas credenciais da OpenAI.`);
+      }
+      
+      if (error?.status === 429) {
+        throw new Error(`❌ Limite de requisições excedido. Aguarde alguns momentos e tente novamente.`);
+      }
+      
+      if (error?.status === 500 || error?.status === 503) {
+        throw new Error(`❌ Serviço da OpenAI temporariamente indisponível. Tente novamente em alguns instantes.`);
+      }
+      
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      throw new Error(`❌ Falha na chamada da API OpenAI: ${errorMessage}`);
     }
   }
 
@@ -117,9 +136,19 @@ ${options.systemPrompt || ''}`;
       });
 
       return response.data[0]?.embedding || [];
-    } catch (error) {
+    } catch (error: any) {
       console.error('OpenAI embedding error:', error);
-      throw new Error(`OpenAI embedding failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      
+      if (error?.status === 404) {
+        throw new Error(`❌ Modelo de embedding "${model}" não está disponível.`);
+      }
+      
+      if (error?.status === 401) {
+        throw new Error(`❌ Chave de API inválida para embeddings.`);
+      }
+      
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      throw new Error(`❌ Falha ao gerar embedding: ${errorMessage}`);
     }
   }
 
@@ -139,9 +168,15 @@ ${options.systemPrompt || ''}`;
         categories: (result?.categories || {}) as unknown as Record<string, boolean>,
         category_scores: (result?.category_scores || {}) as unknown as Record<string, number>
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('OpenAI moderation error:', error);
-      throw new Error(`OpenAI moderation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      
+      if (error?.status === 401) {
+        throw new Error(`❌ Chave de API inválida para moderação.`);
+      }
+      
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      throw new Error(`❌ Falha na moderação de conteúdo: ${errorMessage}`);
     }
   }
 }

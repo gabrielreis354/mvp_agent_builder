@@ -38,7 +38,6 @@ export function SettingsSection() {
       shareReports: false
     },
     preferences: {
-      theme: 'dark',
       language: 'pt-BR',
       defaultView: 'grid'
     }
@@ -387,25 +386,6 @@ export function SettingsSection() {
           </div>
           
           <div className="space-y-4">
-            <div>
-              <Label htmlFor="theme" className="text-white">Tema</Label>
-              <select
-                id="theme"
-                value={settings.preferences.theme}
-                onChange={(e) => 
-                  setSettings(prev => ({
-                    ...prev,
-                    preferences: { ...prev.preferences, theme: e.target.value }
-                  }))
-                }
-                className="w-full mt-2 px-3 py-2 bg-white/10 border border-gray-600 rounded-lg text-white"
-              >
-                <option value="dark">Escuro</option>
-                <option value="light">Claro</option>
-                <option value="auto">Automático</option>
-              </select>
-            </div>
-
             <div>
               <Label htmlFor="language" className="text-white">Idioma</Label>
               <select

@@ -53,7 +53,7 @@ export class EmailService {
     })
   }
   
-  async sendEmail({ to, subject, text, html }: EmailOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
+  async sendEmail({ to, subject, text, html, attachments }: EmailOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
     try {
       // ❌ REMOVIDO: Simulação de email
       // Agora EXIGE configuração SMTP para funcionar
@@ -87,7 +87,14 @@ export class EmailService {
       console.log(`📧 [EMAIL SERVICE] De: ${this.config.auth.user}`);
       console.log(`📧 [EMAIL SERVICE] Servidor SMTP: ${this.config.host}:${this.config.port}`);
       console.log(`📧 [EMAIL SERVICE] Secure: ${this.config.secure}`);
-      console.log(`📧 [EMAIL SERVICE] Anexos: ${html?.length || 0}`);
+      console.log(`📧 [EMAIL SERVICE] Conteúdo HTML: ${html?.length || 0} chars`);
+      console.log(`📧 [EMAIL SERVICE] Anexos: ${attachments?.length || 0}`);
+      
+      if (attachments && attachments.length > 0) {
+        attachments.forEach((att, idx) => {
+          console.log(`📎 [EMAIL SERVICE] Anexo ${idx + 1}: ${att.filename} (${att.content.length} bytes, ${att.contentType})`);
+        });
+      }
       
       const info = await this.transporter.sendMail({
         from: `${process.env.EMAIL_FROM_NAME || 'SimplifiqueIA RH'} <${process.env.EMAIL_FROM || this.config.auth.user}>`,
@@ -95,6 +102,7 @@ export class EmailService {
         subject,
         text,
         html,
+        attachments,
         // Headers anti-spam
         headers: {
           'X-Mailer': 'SimplifiqueIA RH',
