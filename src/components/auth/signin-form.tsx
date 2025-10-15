@@ -68,7 +68,7 @@ export function SignInForm() {
         }
       });
     }
-  }, [searchParams, router]);
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
