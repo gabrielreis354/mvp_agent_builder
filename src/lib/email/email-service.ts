@@ -1,12 +1,20 @@
-import nodemailer from 'nodemailer'
+import sgMail from '@sendgrid/mail'
 
 export interface EmailConfig {
-  host: string
-  port: number
-  secure: boolean
-  auth: {
-    user: string
-    pass: string
+  provider: 'sendgrid' | 'smtp'
+  sendgrid?: {
+    apiKey: string
+    fromEmail: string
+    fromName: string
+  }
+  smtp?: {
+    host: string
+    port: number
+    secure: boolean
+    auth: {
+      user: string
+      pass: string
+    }
   }
 }
 
@@ -23,71 +31,60 @@ export interface EmailOptions {
 }
 
 export class EmailService {
-  private transporter: nodemailer.Transporter | null = null
+  private isConfigured: boolean = false
   
   constructor(private config?: EmailConfig) {
     if (config) {
-      this.initializeTransporter()
+      this.initialize()
     }
   }
   
-  private initializeTransporter() {
+  private initialize() {
     if (!this.config) return
     
-    this.transporter = nodemailer.createTransport({
-      host: this.config.host,
-      port: this.config.port,
-      secure: this.config.secure,
-      auth: {
-        user: this.config.auth.user,
-        pass: this.config.auth.pass
-      },
-      connectionTimeout: 10000, // 10 segundos
-      greetingTimeout: 10000,   // 10 segundos
-      socketTimeout: 30000,     // 30 segundos
-      pool: true,               // Usar pool de conexões
-      maxConnections: 5,        // Máximo de conexões simultâneas
-      maxMessages: 100,         // Máximo de mensagens por conexão
-      rateDelta: 1000,          // Intervalo entre mensagens (ms)
-      rateLimit: 5              // Máximo de mensagens por rateDelta
-    })
+    if (this.config.provider === 'sendgrid' && this.config.sendgrid) {
+      sgMail.setApiKey(this.config.sendgrid.apiKey)
+      this.isConfigured = true
+      console.log('✅ [EMAIL SERVICE] SendGrid configurado com sucesso')
+    } else if (this.config.provider === 'smtp' && this.config.smtp) {
+      // SMTP não é mais suportado - apenas SendGrid
+      console.warn('⚠️ [EMAIL SERVICE] SMTP não é mais suportado. Use SendGrid.')
+      this.isConfigured = false
+    }
   }
   
   async sendEmail({ to, subject, text, html, attachments }: EmailOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
     try {
-      // ❌ REMOVIDO: Simulação de email
-      // Agora EXIGE configuração SMTP para funcionar
-      if (!this.transporter || !this.config) {
-        const errorMsg = 'Configuração SMTP não encontrada. Configure as variáveis de ambiente SMTP_HOST, SMTP_PORT, SMTP_USER e SMTP_PASS no arquivo .env.local';
+      if (!this.isConfigured || !this.config) {
+        const errorMsg = 'Serviço de email não configurado. Configure SENDGRID_API_KEY, SENDGRID_FROM_EMAIL e SENDGRID_FROM_NAME no .env.local';
         console.error('❌ [EMAIL SERVICE]', errorMsg);
-        
         return {
           success: false,
           error: errorMsg
         }
       }
 
-      // Verificar conexão antes de enviar
-      try {
-        console.log(`🔍 [EMAIL SERVICE] Verificando conexão SMTP...`);
-        await this.transporter.verify();
-        console.log(`✅ [EMAIL SERVICE] Conexão SMTP verificada com sucesso`);
-      } catch (verifyError) {
-        console.error(`❌ [EMAIL SERVICE] Falha na verificação SMTP:`, verifyError);
+      if (this.config.provider !== 'sendgrid' || !this.config.sendgrid) {
         return {
           success: false,
-          error: `Falha na conexão SMTP: ${verifyError instanceof Error ? verifyError.message : 'Erro desconhecido'}`
+          error: 'Apenas SendGrid é suportado como provedor de email'
         }
       }
-      
-      // ✅ Envio real de email
-      console.log(`📧 [EMAIL SERVICE] ===== INICIANDO ENVIO DE EMAIL =====`);
+
+      // Validar que há conteúdo (text ou html)
+      if (!text && !html) {
+        return {
+          success: false,
+          error: 'Email deve ter conteúdo (text ou html)'
+        }
+      }
+
+      console.log(`📧 [EMAIL SERVICE] ===== ENVIANDO EMAIL VIA SENDGRID =====`);
       console.log(`📧 [EMAIL SERVICE] Para: ${to}`);
       console.log(`📧 [EMAIL SERVICE] Assunto: ${subject}`);
-      console.log(`📧 [EMAIL SERVICE] De: ${this.config.auth.user}`);
-      console.log(`📧 [EMAIL SERVICE] Servidor SMTP: ${this.config.host}:${this.config.port}`);
-      console.log(`📧 [EMAIL SERVICE] Secure: ${this.config.secure}`);
+      console.log(`📧 [EMAIL SERVICE] De: ${this.config.sendgrid.fromName} <${this.config.sendgrid.fromEmail}>`);
       console.log(`📧 [EMAIL SERVICE] Conteúdo HTML: ${html?.length || 0} chars`);
+      console.log(`📧 [EMAIL SERVICE] Conteúdo Text: ${text?.length || 0} chars`);
       console.log(`📧 [EMAIL SERVICE] Anexos: ${attachments?.length || 0}`);
       
       if (attachments && attachments.length > 0) {
@@ -95,60 +92,86 @@ export class EmailService {
           console.log(`📎 [EMAIL SERVICE] Anexo ${idx + 1}: ${att.filename} (${att.content.length} bytes, ${att.contentType})`);
         });
       }
-      
-      const info = await this.transporter.sendMail({
-        from: `${process.env.EMAIL_FROM_NAME || 'SimplifiqueIA RH'} <${process.env.EMAIL_FROM || this.config.auth.user}>`,
+
+      // Preparar mensagem SendGrid
+      const msg: any = {
         to,
+        from: {
+          email: this.config.sendgrid.fromEmail,
+          name: this.config.sendgrid.fromName
+        },
         subject,
-        text,
-        html,
-        attachments,
-        // Headers anti-spam
+        // Headers profissionais
         headers: {
           'X-Mailer': 'SimplifiqueIA RH',
           'X-Priority': '3',
-          'X-MSMail-Priority': 'Normal',
-          'Importance': 'Normal',
-          'List-Unsubscribe': `<mailto:${process.env.EMAIL_FROM || this.config.auth.user}?subject=Unsubscribe>`,
-          'Precedence': 'bulk',
         },
-        // Configurações de entrega
-        priority: 'normal',
-        encoding: 'utf-8',
-      })
+        // Tracking
+        trackingSettings: {
+          clickTracking: {
+            enable: true,
+            enableText: false
+          },
+          openTracking: {
+            enable: true
+          }
+        },
+        // Categorias para analytics
+        categories: ['transactional', 'reports']
+      }
+
+      // Adicionar conteúdo (priorizar HTML sobre text)
+      if (html) {
+        msg.html = html
+        if (text) {
+          msg.text = text
+        }
+      } else if (text) {
+        msg.text = text
+      }
+
+      // Adicionar anexos se existirem
+      if (attachments && attachments.length > 0) {
+        msg.attachments = attachments.map(att => ({
+          content: att.content.toString('base64'),
+          filename: att.filename,
+          type: att.contentType,
+          disposition: 'attachment'
+        }))
+      }
+
+      // Enviar via SendGrid
+      const response = await sgMail.send(msg)
       
-      console.log(`✅ [EMAIL SERVICE] Email enviado com sucesso!`);
-      console.log(`✅ [EMAIL SERVICE] MessageId: ${info.messageId}`);
-      console.log(`✅ [EMAIL SERVICE] Response: ${info.response}`);
-      console.log(`✅ [EMAIL SERVICE] Accepted: ${info.accepted?.join(', ')}`);
-      console.log(`✅ [EMAIL SERVICE] Rejected: ${info.rejected?.join(', ') || 'nenhum'}`);
+      console.log(`✅ [EMAIL SERVICE] Email enviado com sucesso via SendGrid!`);
+      console.log(`✅ [EMAIL SERVICE] Status: ${response[0].statusCode}`);
+      console.log(`✅ [EMAIL SERVICE] MessageId: ${response[0].headers['x-message-id']}`);
       console.log(`✅ [EMAIL SERVICE] ===== EMAIL ENVIADO =====`);
       
       return {
         success: true,
-        messageId: info.messageId
+        messageId: response[0].headers['x-message-id'] as string
       }
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ [EMAIL SERVICE] Erro ao enviar email:', error)
+      
+      // Log detalhado de erros SendGrid
+      if (error.response) {
+        console.error('❌ [EMAIL SERVICE] Status:', error.response.statusCode)
+        console.error('❌ [EMAIL SERVICE] Body:', error.response.body)
+      }
+      
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Erro desconhecido ao enviar email'
+        error: error.message || 'Erro desconhecido ao enviar email'
       }
     }
   }
   
   // Método para testar configuração
   async testConnection(): Promise<boolean> {
-    if (!this.transporter) return false
-    
-    try {
-      await this.transporter.verify()
-      return true
-    } catch (error) {
-      console.error('Erro na conexão SMTP:', error)
-      return false
-    }
+    return this.isConfigured
   }
   
   // Email de boas-vindas para novos usuários
@@ -377,14 +400,13 @@ let emailService: EmailService | null = null
 
 export function getEmailService(): EmailService {
   if (!emailService) {
-    // Tentar carregar configuração das variáveis de ambiente
-    const config = process.env.SMTP_HOST ? {
-      host: process.env.SMTP_HOST,
-      port: parseInt(process.env.SMTP_PORT || '587'),
-      secure: process.env.SMTP_SECURE === 'true',
-      auth: {
-        user: process.env.SMTP_USER || '',
-        pass: process.env.SMTP_PASS || ''
+    // Configurar SendGrid a partir das variáveis de ambiente
+    const config: EmailConfig | undefined = process.env.SENDGRID_API_KEY ? {
+      provider: 'sendgrid',
+      sendgrid: {
+        apiKey: process.env.SENDGRID_API_KEY,
+        fromEmail: process.env.SENDGRID_FROM_EMAIL || 'noreply@simplifiqueia.com.br',
+        fromName: process.env.SENDGRID_FROM_NAME || 'SimplifiqueIA RH'
       }
     } : undefined
     
