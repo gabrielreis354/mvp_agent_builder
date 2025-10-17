@@ -57,6 +57,7 @@
     "@reactflow/controls": "^11.2.13",
     "@reactflow/core": "^11.11.4",
     "@reactflow/minimap": "^11.7.13",
+    "@sendgrid/mail": "^8.1.6",
     "@types/bcryptjs": "^2.4.6",
     "@types/bull": "^3.15.9",
     "@types/dompurify": "^3.0.5",
