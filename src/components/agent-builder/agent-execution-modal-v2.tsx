@@ -197,7 +197,6 @@ export function AgentExecutionModalV2({
         toast({
           title: "✅ Relatório Enviado por Email",
           description: `Email enviado para ${submittedFormData.email}. Verifique sua caixa de SPAM se não receber em 2 minutos.`,
-          duration: 8000, // 8 segundos para dar tempo de ler
         });
       } else {
         toast({
