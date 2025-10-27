@@ -106,7 +106,7 @@ export class EmailConnector extends BaseConnector {
     try {
       const testResult = await this.execute(config, {
         to: config.fromEmail,
-        subject: 'Test Email from AutomateAI',
+        subject: 'Test Email from SimplifiqueIA',
         body: 'This is a test email to verify the email connector configuration.'
       })
       

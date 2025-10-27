@@ -21,10 +21,39 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validar força da senha
-    if (password.length < 6) {
+    // Validar força da senha (mesmo padrão do signup)
+    if (password.length < 8) {
       return NextResponse.json(
-        { error: 'A senha deve ter pelo menos 6 caracteres' },
+        { error: 'A senha deve ter no mínimo 8 caracteres' },
+        { status: 400 }
+      );
+    }
+
+    // Validações adicionais de senha forte
+    if (!/[a-z]/.test(password)) {
+      return NextResponse.json(
+        { error: 'A senha deve conter pelo menos uma letra minúscula' },
+        { status: 400 }
+      );
+    }
+
+    if (!/[A-Z]/.test(password)) {
+      return NextResponse.json(
+        { error: 'A senha deve conter pelo menos uma letra maiúscula' },
+        { status: 400 }
+      );
+    }
+
+    if (!/[0-9]/.test(password)) {
+      return NextResponse.json(
+        { error: 'A senha deve conter pelo menos um número' },
+        { status: 400 }
+      );
+    }
+
+    if (!/[^a-zA-Z0-9]/.test(password)) {
+      return NextResponse.json(
+        { error: 'A senha deve conter pelo menos um caractere especial (!@#$%^&*...)' },
         { status: 400 }
       );
     }

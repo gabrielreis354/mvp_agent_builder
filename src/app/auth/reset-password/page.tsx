@@ -25,51 +25,85 @@ function ResetPasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Carregar token da URL
-  useEffect(() => {
-    if (searchParams) {
-      const tokenParam = searchParams.get('token');
-      setToken(tokenParam);
-    }
-  }, [searchParams]);
-
-  // Validar token ao carregar
+  // Carregar e validar token da URL
   useEffect(() => {
     const validateToken = async () => {
-      if (!token) {
-        setError('Token não fornecido');
+      if (!searchParams) {
+        setError('Parâmetros de URL não disponíveis');
         setIsValidating(false);
         return;
       }
 
+      const tokenParam = searchParams.get('token');
+      
+      if (!tokenParam) {
+        setError('Token não fornecido na URL');
+        setIsValidating(false);
+        return;
+      }
+
+      setToken(tokenParam);
+
       try {
-        const response = await fetch(`/api/auth/reset-password?token=${token}`);
+        console.log('[RESET-PASSWORD] Validando token:', tokenParam);
+        const response = await fetch(`/api/auth/reset-password?token=${tokenParam}`);
         const data = await response.json();
+
+        console.log('[RESET-PASSWORD] Resposta da validação:', { status: response.status, data });
 
         if (response.ok && data.valid) {
           setTokenValid(true);
           setEmail(data.email);
+          console.log('[RESET-PASSWORD] Token válido para email:', data.email);
         } else {
-          setError(data.error || 'Token inválido ou expirado');
+          const errorMsg = data.error || 'Token inválido ou expirado';
+          setError(errorMsg);
+          console.error('[RESET-PASSWORD] Token inválido:', errorMsg);
         }
       } catch (err) {
-        setError('Erro ao validar token');
+        const errorMsg = 'Erro ao validar token. Verifique sua conexão.';
+        setError(errorMsg);
+        console.error('[RESET-PASSWORD] Erro na validação:', err);
       } finally {
         setIsValidating(false);
       }
     };
 
     validateToken();
-  }, [token]);
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
-    // Validações
-    if (password.length < 6) {
-      setError('A senha deve ter pelo menos 6 caracteres');
+    // Validações de senha forte (mesmo padrão do signup)
+    if (password.length < 8) {
+      setError('A senha deve ter no mínimo 8 caracteres');
+      setIsLoading(false);
+      return;
+    }
+
+    if (!/[a-z]/.test(password)) {
+      setError('A senha deve conter pelo menos uma letra minúscula');
+      setIsLoading(false);
+      return;
+    }
+
+    if (!/[A-Z]/.test(password)) {
+      setError('A senha deve conter pelo menos uma letra maiúscula');
+      setIsLoading(false);
+      return;
+    }
+
+    if (!/[0-9]/.test(password)) {
+      setError('A senha deve conter pelo menos um número');
+      setIsLoading(false);
+      return;
+    }
+
+    if (!/[^a-zA-Z0-9]/.test(password)) {
+      setError('A senha deve conter pelo menos um caractere especial (!@#$%^&*...)');
       setIsLoading(false);
       return;
     }
@@ -104,13 +138,13 @@ function ResetPasswordContent() {
     }
   };
 
-  // Calcular força da senha
+  // Calcular força da senha (mesmo padrão do signup)
   const getPasswordStrength = (pass: string) => {
     if (!pass) return { strength: 0, label: '', color: '' };
     
     let strength = 0;
-    if (pass.length >= 6) strength++;
-    if (pass.length >= 10) strength++;
+    if (pass.length >= 8) strength++;
+    if (pass.length >= 12) strength++;
     if (/[a-z]/.test(pass) && /[A-Z]/.test(pass)) strength++;
     if (/\d/.test(pass)) strength++;
     if (/[^a-zA-Z0-9]/.test(pass)) strength++;
@@ -290,7 +324,7 @@ function ResetPasswordContent() {
                   )}
                   
                   <p className="text-xs text-gray-400">
-                    Mínimo de 6 caracteres
+                    Mínimo de 8 caracteres (maiúscula, minúscula, número e caractere especial)
                   </p>
                 </div>
 
@@ -328,7 +362,7 @@ function ResetPasswordContent() {
 
                 <motion.button
                   type="submit"
-                  disabled={isLoading || password !== confirmPassword || password.length < 6}
+                  disabled={isLoading || password !== confirmPassword || password.length < 8}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   className="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg font-semibold text-white flex items-center justify-center gap-2 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
