@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Brain, Plus, Edit, Play, Globe, Lock } from 'lucide-react';
+import { Brain, Plus, Edit, Play, Globe, Lock, MessageSquare } from 'lucide-react';
 import { AgentCardSkeleton } from './agent-card-skeleton';
 import { useExecutionStore } from '@/lib/store/execution-store';
 import { Button } from '@/components/ui/button'
@@ -208,6 +208,17 @@ export function AgentsSection({ userId }: AgentsSectionProps) {
                   Editar
                 </Button>
               </div>
+
+              {/* Botão de Chat */}
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full mb-3 bg-gradient-to-r from-purple-600/20 to-blue-600/20 border-purple-400/30 text-purple-300 hover:from-purple-600/30 hover:to-blue-600/30 hover:text-purple-200 hover:border-purple-400/50 transition-all duration-300"
+                onClick={() => window.location.href = `/agents/${agent.id}/chat`}
+              >
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Conversar com Agente
+              </Button>
 
               {/* Botão de Compartilhamento */}
               <Button

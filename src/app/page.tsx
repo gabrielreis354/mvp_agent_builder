@@ -11,7 +11,10 @@ import {
   Sparkles, 
   Building2,
   Target,
-  TrendingUp
+  TrendingUp,
+  Mail,
+  MessageSquare,
+  FileText
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -141,6 +144,19 @@ export default function HomePage() {
                 >
                   <Sparkles className="w-5 h-5" />
                   Ver Templates
+                </motion.button>
+              </Link>
+
+              <Link href="/chat">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="px-4 py-3 sm:px-6 sm:py-4 md:px-8 md:py-5 min-h-[44px] bg-gradient-to-r from-green-500/20 to-emerald-500/20 hover:from-green-500/30 hover:to-emerald-500/30 backdrop-blur-sm text-white rounded-xl font-medium text-sm sm:text-base md:text-lg transition-all duration-300 border border-green-500/40 hover:border-green-400/60 flex items-center gap-2"
+                >
+                  <MessageSquare className="w-5 h-5" />
+                  <span className="hidden sm:inline">Chat com IA</span>
+                  <span className="sm:hidden">Chat</span>
+                  <span className="text-xs px-2 py-0.5 bg-green-500/30 rounded-full">NOVO</span>
                 </motion.button>
               </Link>
             </div>
@@ -285,6 +301,84 @@ export default function HomePage() {
           </motion.div>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="border-t border-white/10 bg-black/40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Coluna 1: Sobre */}
+            <div>
+              <div className="flex items-center mb-4">
+                <Brain className="h-6 w-6 text-blue-400 mr-2" />
+                <h3 className="text-lg font-bold">SimplifiqueIA</h3>
+              </div>
+              <p className="text-gray-400 text-sm leading-relaxed">
+                Automatize processos de RH com inteligência artificial. 
+                Interface visual simples, sem código.
+              </p>
+            </div>
+
+            {/* Coluna 2: Links Rápidos */}
+            <div>
+              <h3 className="text-lg font-bold mb-4">Links Rápidos</h3>
+              <ul className="space-y-2">
+                <li>
+                  <Link href="/builder" className="text-gray-400 hover:text-white transition-colors flex items-center gap-2">
+                    <Brain className="h-4 w-4" />
+                    Criar Agente
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/gallery" className="text-gray-400 hover:text-white transition-colors flex items-center gap-2">
+                    <Sparkles className="h-4 w-4" />
+                    Templates
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/feedback" className="text-gray-400 hover:text-white transition-colors flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4" />
+                    Dar Feedback
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/terms" className="text-gray-400 hover:text-white transition-colors flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Termos de Uso
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Coluna 3: Contato */}
+            <div>
+              <h3 className="text-lg font-bold mb-4">Contato</h3>
+              <div className="space-y-3">
+                <a 
+                  href="mailto:suporte@simplifiqueia.com.br"
+                  className="text-gray-400 hover:text-white transition-colors flex items-center gap-2 group"
+                >
+                  <Mail className="h-4 w-4 group-hover:text-blue-400 transition-colors" />
+                  <span className="text-sm">suporte@simplifiqueia.com.br</span>
+                </a>
+                <Link 
+                  href="/feedback"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 rounded-lg text-sm transition-colors"
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  Enviar Feedback Rápido
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Copyright */}
+          <div className="mt-8 pt-8 border-t border-white/10 text-center">
+            <p className="text-gray-400 text-sm">
+              © {new Date().getFullYear()} SimplifiqueIA. Todos os direitos reservados.
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }

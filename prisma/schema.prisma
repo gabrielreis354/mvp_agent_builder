@@ -47,6 +47,7 @@ model User {
   reports                 Report[]
   sessions                Session[]
   apiKeys                 UserApiKey[]
+  agentThreads            AgentThread[]
   organization            Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@map("users")
@@ -124,6 +125,7 @@ model Agent {
   organizationId String
   executions     AgentExecution[]
   templates      AgentTemplate[]
+  threads        AgentThread[]
   organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: NoAction)
   user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   reports        Report[]
@@ -339,4 +341,56 @@ enum FileStatus {
   PROCESSING
   PROCESSED
   FAILED
+}
+
+// ============================================
+// AGENTKIT - CONVERSATIONAL AGENTS
+// ============================================
+
+model AgentThread {
+  id            String        @id @default(cuid())
+  userId        String
+  agentId       String
+  title         String?
+  status        ThreadStatus  @default(ACTIVE)
+  metadata      Json?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agent         Agent         @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  messages      ThreadMessage[]
+  
+  @@index([userId])
+  @@index([agentId])
+  @@index([status])
+  @@index([updatedAt])
+  @@map("agent_threads")
+}
+
+enum ThreadStatus {
+  ACTIVE
+  ARCHIVED
+  COMPLETED
+}
+
+model ThreadMessage {
+  id            String       @id @default(cuid())
+  threadId      String
+  role          MessageRole
+  content       String       @db.Text
+  metadata      Json?
+  createdAt     DateTime     @default(now())
+  
+  thread        AgentThread  @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  
+  @@index([threadId])
+  @@index([createdAt])
+  @@map("thread_messages")
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
 }

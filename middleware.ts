@@ -42,6 +42,8 @@ export const config = {
     '/testing/:path*',
     '/dashboard/:path*',
     '/admin/:path*',
-    '/profile/:path*'
+    '/profile/:path*',
+    '/chat-test/:path*',
+    '/chat/:path*'
   ]
 }

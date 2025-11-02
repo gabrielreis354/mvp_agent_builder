@@ -71,34 +71,44 @@ export async function POST(request: NextRequest) {
     const metadata = parsedContent?.metadata || {};
     const reportTitle = metadata.titulo_relatorio || fileName || 'relatorio';
     const analysisType = metadata.tipo_analise || 'Análise Geral';
+    const isHtmlContent = metadata.is_html_content || false; // 🆕 Flag para HTML
     
     // O conteúdo da análise é dinâmico - a IA pode gerar qualquer estrutura
     const analysisPayload = parsedContent?.analise_payload || parsedContent;
     
-    // ✅ ENVIAR PAYLOAD COMPLETO para o microserviço processar
-    // Estrutura que o microserviço Python espera
-    const transformedContent = {
-      // Campos principais que o microserviço usa
-      summary: analysisPayload?.resumo_executivo || analysisPayload?.resumo || '',
-      key_points: analysisPayload?.pontos_principais || [],
-      recommendations: analysisPayload?.recomendacoes || [],
-      
-      // Dados adicionais estruturados
-      dados_principais: analysisPayload?.dados_principais || {},
-      pontuacao_geral: analysisPayload?.pontuacao_geral || {},
-      criterios_avaliacao: analysisPayload?.criterios_avaliacao || [],
-      pontos_atencao: analysisPayload?.pontos_atencao || [],
-      
-      // Incluir TUDO do payload original para o microserviço ter acesso completo
-      full_analysis: analysisPayload
-    };
+    // ✅ ENVIAR PAYLOAD SIMPLIFICADO para evitar duplicação
+    let transformedContent: any;
+    
+    if (isHtmlContent) {
+      // 🎯 MODO HTML: Enviar apenas o summary com HTML
+      transformedContent = {
+        summary: analysisPayload?.summary || '',
+        is_html: true, // Flag para microserviço saber que summary é HTML
+        key_points: [],
+        recommendations: [],
+      };
+    } else {
+      // 📊 MODO ESTRUTURADO: Estrutura tradicional
+      transformedContent = {
+        summary: analysisPayload?.resumo_executivo || analysisPayload?.resumo || analysisPayload?.summary || '',
+        key_points: analysisPayload?.pontos_principais || [],
+        recommendations: analysisPayload?.recomendacoes || [],
+        dados_principais: analysisPayload?.dados_principais || {},
+        pontuacao_geral: analysisPayload?.pontuacao_geral || {},
+        criterios_avaliacao: analysisPayload?.criterios_avaliacao || [],
+        pontos_atencao: analysisPayload?.pontos_atencao || [],
+        full_analysis: analysisPayload,
+      };
+    }
     
     console.log(`📦 [API Generate] Transformed content:`, {
+      is_html_mode: isHtmlContent,
+      is_html_flag: transformedContent.is_html || false,
       summary_length: transformedContent.summary?.length || 0,
       key_points_count: transformedContent.key_points?.length || 0,
       recommendations_count: transformedContent.recommendations?.length || 0,
       has_dados_principais: !!transformedContent.dados_principais,
-      has_full_analysis: !!transformedContent.full_analysis
+      has_full_analysis: !!transformedContent.full_analysis,
     });
     
     formData.append('content', JSON.stringify(transformedContent));
@@ -107,9 +117,14 @@ export async function POST(request: NextRequest) {
     formData.append('analysis_type', analysisType);
     
     console.log(`📦 [API Generate] Metadata:`, metadata);
-    console.log(`📦 [API Generate] Analysis payload keys:`, Object.keys(analysisPayload));
     console.log(`📦 [API Generate] Report title: ${reportTitle}`);
     console.log(`📦 [API Generate] Analysis type: ${analysisType}`);
+    
+    if (isHtmlContent) {
+      console.log(`🎨 [API Generate] HTML MODE - Summary preview:`, transformedContent.summary?.substring(0, 200));
+    } else {
+      console.log(`📊 [API Generate] STRUCTURED MODE - Analysis payload keys:`, Object.keys(analysisPayload));
+    }
 
     // 2. Chamar o microserviço Python com FormData
     const microserviceResponse = await fetch(microserviceUrl, {
