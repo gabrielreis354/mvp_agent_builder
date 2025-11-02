@@ -26,9 +26,15 @@ export function MessageInput({ onSend, disabled, placeholder }: MessageInputProp
 
   const handleFileSelect = (file: File, content: string) => {
     setFileContent(content)
-    setMessage((prev) => 
-      prev + `\n\n[Arquivo anexado: ${file.name}]\n`
-    )
+    // Limpar mensagem se estiver vazia e adicionar texto inicial
+    const currentMsg = message.trim()
+    if (!currentMsg) {
+      setMessage(`Analise este documento: ${file.name}`)
+    } else {
+      setMessage((prev) => 
+        prev + `\n\n[📎 Documento anexado: ${file.name}]`
+      )
+    }
   }
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {

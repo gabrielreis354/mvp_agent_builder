@@ -232,14 +232,19 @@ ${conversationHistory}
 
 MENSAGEM ATUAL: ${currentMessage}
 ${fileContent ? `
-ARQUIVO ANEXADO: Sim!
-CONTEÚDO DO ARQUIVO (primeiros 2000 caracteres):
-${fileContent.substring(0, 2000)}
-...
+✅ DOCUMENTO ANEXADO E PROCESSADO COM SUCESSO!
 
-⚠️ IMPORTANTE: Extraia TODOS os dados disponíveis no arquivo acima. 
-NÃO diga "não informado" se a informação estiver no texto do arquivo!
-` : 'ARQUIVO ANEXADO: Não'}
+📄 CONTEÚDO DO DOCUMENTO (primeiros 2000 caracteres):
+${fileContent.substring(0, 2000)}
+${fileContent.length > 2000 ? '...\n[Documento possui mais conteúdo]' : ''}
+
+⚠️ IMPORTANTE: 
+- Este documento foi anexado pelo usuário e processado com sucesso
+- EXTRAIA TODOS os dados disponíveis no conteúdo acima
+- NÃO diga "documento não encontrado" ou "arquivo não fornecido"
+- NÃO diga "não informado" se a informação estiver no texto do documento
+- Use os dados do documento para preencher os campos obrigatórios
+` : '❌ NENHUM DOCUMENTO ANEXADO'}
 
 ANALISE COM ATENÇÃO:
 1. Qual é a intenção do usuário?
@@ -557,13 +562,20 @@ Formate o resultado de forma que seja fácil de ler e entender:`
    */
   private async processPDF(fileContent: string): Promise<string> {
     try {
-      console.log('[ConversationalEngineV3] Processando PDF...')
-      console.log('[ConversationalEngineV3] Tamanho do arquivo:', fileContent.length, 'caracteres')
+      console.log('[ConversationalEngineV3] 📄 Iniciando processamento de PDF...')
+      console.log('[ConversationalEngineV3] Tamanho do conteúdo recebido:', fileContent.length, 'caracteres')
 
-      const base64Data = fileContent.split(',')[1]
-      if (!base64Data) {
-        throw new Error('Formato de arquivo inválido')
+      // Validar se é base64
+      if (!fileContent || fileContent.length === 0) {
+        throw new Error('Arquivo vazio ou não fornecido')
       }
+
+      const base64Data = fileContent.includes(',') ? fileContent.split(',')[1] : fileContent
+      if (!base64Data || base64Data.length === 0) {
+        throw new Error('Formato de arquivo inválido - não é base64 válido')
+      }
+
+      console.log('[ConversationalEngineV3] Base64 extraído:', base64Data.length, 'caracteres')
 
       const binaryData = atob(base64Data)
       const bytes = new Uint8Array(binaryData.length)
@@ -571,19 +583,27 @@ Formate o resultado de forma que seja fácil de ler e entender:`
         bytes[i] = binaryData.charCodeAt(i)
       }
 
-      console.log('[ConversationalEngineV3] Arquivo convertido:', bytes.length, 'bytes')
+      console.log('[ConversationalEngineV3] ✅ Arquivo convertido:', bytes.length, 'bytes')
 
       const formData = new FormData()
       const blob = new Blob([bytes], { type: 'application/pdf' })
       formData.append('file', blob, 'document.pdf')
 
-      // Microserviço de PDF está na porta 8001 com rota /extract
-      const serviceUrl = 'http://localhost:8001/extract'
+      // ✅ Usar variável de ambiente (produção ou desenvolvimento)
+      const pdfServiceUrl = process.env.NEXT_PUBLIC_PDF_SERVICE_URL || process.env.PDF_SERVICE_URL
+      
+      if (!pdfServiceUrl) {
+        console.error('[ConversationalEngineV3] PDF_SERVICE_URL não configurada!')
+        return '[Erro: Serviço de processamento de PDF não configurado. Configure PDF_SERVICE_URL nas variáveis de ambiente.]'
+      }
+
+      const serviceUrl = `${pdfServiceUrl}/extract`
       console.log('[ConversationalEngineV3] Enviando para:', serviceUrl)
 
       const response = await fetch(serviceUrl, {
         method: 'POST',
         body: formData,
+        signal: AbortSignal.timeout(30000), // 30s timeout
       })
 
       console.log('[ConversationalEngineV3] Status da resposta:', response.status)
@@ -608,7 +628,8 @@ Formate o resultado de forma que seja fácil de ler e entender:`
       return extractedText
     } catch (error) {
       console.error('[ConversationalEngineV3] Erro ao processar PDF:', error)
-      return '[Erro ao processar PDF - verifique se o microserviço está rodando em http://localhost:8001]'
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
+      return `[Erro ao processar PDF: ${errorMessage}. Verifique se o serviço de processamento está disponível.]`
     }
   }
 
